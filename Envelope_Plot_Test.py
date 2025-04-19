@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt 
+import matplotlib
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 import sympy as sp
 
 
@@ -60,19 +63,26 @@ print(Y_val.shape)
 print(Z_val.shape)
 #############
 Px = X_val
-Py = Y_val*np.cos(W)
+Py = Z_val*np.cos(W)
 Pz = Z_val*np.sin(W)
+##################
+vertices = np.stack((Px.flatten(), Py.flatten(), Pz.flatten()), axis=-1)
+triangles = matplotlib.tri.Triangulation(vertices[:,0], vertices[:,1])
+mesh = Poly3DCollection(vertices[triangles.triangles])
+
+
 ##################
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 # ax.plot(X_val, Y_val, Z_val, label='B-spline curve')
-ax.plot_surface(Px, Py, Pz, alpha=0.5, color='blue')
-ax.plot_wireframe(Px, Py, Pz, color='blue', alpha=0.5)
+# ax.plot_surface(Px, Py, Pz, alpha=0.5, color='blue')
+ax.add_collection3d(mesh)
+ax.plot_wireframe(Px, Py, Pz, color='black', alpha=0.5)
 
 ax.scatter(p_i[:,0], p_i[:,1], p_i[:,2], color='red', label='Control points')
 ax.set_xlabel('X-axis')
 ax.set_ylabel('Y-axis')
 ax.set_zlabel('Z-axis')
-ax.set_title('B-spline Curve')
+ax.set_title('cubic spline curve,')
 ax.legend()
 plt.show()

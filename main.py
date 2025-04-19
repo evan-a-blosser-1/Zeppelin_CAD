@@ -4,15 +4,25 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 
 from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6.QtWidgets import (QMainWindow, QApplication, QVBoxLayout, QWidget, 
-                              QHBoxLayout, QPushButton, QLabel, QLineEdit, 
-                              QComboBox, QGridLayout, QScrollArea, QMessageBox)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
+                               QWidget, QLabel, QLineEdit, QPushButton, QTextEdit, QTabWidget,
+                               QMenuBar, QComboBox, QScrollArea, QListView, QFileDialog, 
+                               QFileSystemModel,QGridLayout,QMessageBox)
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush
 from PySide6.QtCore import Qt, QRectF
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 
 sys.dont_write_bytecode = True
 from config import clear_plot
+from Envelope import draw_envelope
+
+
+class PlotCanvas(FigureCanvas):
+    def __init__(self, parent=None):
+        self.fig, self.axis = plt.subplots(subplot_kw={"projection": "3d"})
+        super().__init__(self.fig)
+        self.setParent(parent)
+        
 
 
 class MainWindow(QMainWindow):
@@ -20,7 +30,18 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Zeppelin CAD")
         self.setWindowState(Qt.WindowMaximized)
-
+        ######################################
+        # Globals
+        self.low_pnt = None
+        self.env_tri = None
+        self.env_verts = None
+        self.gond_tri = None
+        self.gond_verts = None
+        self.eng_tri = None
+        self.eng_verts = None
+        self.fin_tri = None
+        self.fin_verts = None
+        self.combined_tri = None
         # Create main central widget and layout
         main_widget = QWidget()
         main_layout = QHBoxLayout()
@@ -61,26 +82,34 @@ class MainWindow(QMainWindow):
         ###############################
         # Main Envelope Tab
         #
+        # Global Variabels: used for gondola location
+        #                   and completing full mesh
+        #
         env_grid = QGridLayout()
-        
-        self.E_len_label = QLabel("Length:")
-        self.E_len = QLineEdit("100")
-        self.E_per_label = QLabel("Mid-Section (%):")
-        self.E_per = QLineEdit("0.20")
+        ###########################
+        # User Inputs
+        self.E_len_label = QLabel("Length: (m)")
+        self.E_len = QLineEdit("175")
+        self.E_rad_label = QLabel("Radius: (m)")
+        self.E_rad = QLineEdit("3")
+        self.E_per_label = QLabel("Nose-Length: (m)")
+        self.E_per = QLineEdit("45")
         
         # Add widgets to grid layout
         env_grid.addWidget(self.E_len_label, 0, 0)
         env_grid.addWidget(self.E_len, 0, 1)
-        env_grid.addWidget(self.E_per_label, 1, 0)
-        env_grid.addWidget(self.E_per, 1, 1)
+        env_grid.addWidget(self.E_rad_label, 1, 0)
+        env_grid.addWidget(self.E_rad, 1, 1)
+        env_grid.addWidget(self.E_per_label, 2, 0)
+        env_grid.addWidget(self.E_per, 2, 1)
         
         # Create and add draw button
-        self.draw_button = QPushButton("Draw Envelope")
-        self.draw_button.clicked.connect(self.draw_envelope)
+        self.draw_env_button = QPushButton("Draw Envelope")
+        self.draw_env_button.clicked.connect(self.draw_envelope)
         
         # Add grid layout to main envelope layout
         env_layout.addLayout(env_grid)
-        env_layout.addWidget(self.draw_button)
+        env_layout.addWidget(self.draw_env_button)
         env_layout.addStretch()
         
         
@@ -88,10 +117,31 @@ class MainWindow(QMainWindow):
         
         ####################################
         # Gondola Tab
-        gond_layout.addWidget(QLabel("Color:"))
-        color_combo = QComboBox()
-        color_combo.addItems(["Sweep","Loft","Revolve"])
-        gond_layout.addWidget(color_combo)
+        gond_grid = QGridLayout()
+        self.gondola_label = QLabel("Gondola Length: (m)")
+        self.gondola_len = QLineEdit("10")
+        self.gondola_wid_label = QLabel("Gondola Width: (m)")
+        self.gondola_wid = QLineEdit("3")
+        self.gondola_height_label = QLabel("Gondola Height: (m)")
+        self.gondola_height = QLineEdit("3")
+        
+        gond_grid.addWidget(self.gondola_label, 0, 0)
+        gond_grid.addWidget(self.gondola_len, 0, 1)
+        gond_grid.addWidget(self.gondola_wid_label, 1, 0)
+        gond_grid.addWidget(self.gondola_wid, 1, 1)
+        gond_grid.addWidget(self.gondola_height_label, 2, 0)
+        gond_grid.addWidget(self.gondola_height, 2, 1)
+        
+        
+        ##########
+        # Buttons
+        self.draw_gond_button = QPushButton("Draw Gondola")
+        self.draw_env_button.clicked.connect(self.draw_gondola)
+        
+        ###
+        # layout 
+        gond_layout.addLayout(gond_grid)
+        gond_layout.addWidget(self.draw_gond_button)
         gond_layout.addStretch()
         
         
@@ -135,11 +185,25 @@ class MainWindow(QMainWindow):
         bottom_panel_layout = QVBoxLayout()
         bottom_panel.setLayout(bottom_panel_layout)
         bottom_panel.setStyleSheet("background-color: #f0f0f0; border: 1px solid #cccccc; margin-top: 10px;")
+
         
         # Add clear button to bottom panel
         self.clear_button = QPushButton("Clear Plot")
         self.clear_button.clicked.connect(lambda: clear_plot(self))
         bottom_panel_layout.addWidget(self.clear_button)
+        #################################################
+        # Merge button
+        # self.merge_button = QPushButton("Merge All Meshes")
+        # self.merge_button.clicked.connect(lambda: merge_meshes(self))
+        # bottom_panel_layout.addWidget(self.merge_button)
+        
+        
+        # Add log output window
+        self.logback = QTextEdit()
+        self.logback.setReadOnly(True)  
+        self.logback.setFixedHeight(500)  
+        self.logback.setStyleSheet("background-color: white; font-family: Consolas;")
+        bottom_panel_layout.addWidget(self.logback)
         
         # Add tab panel and bottom panel to left container
         left_container_layout.addWidget(left_panel)
@@ -154,10 +218,8 @@ class MainWindow(QMainWindow):
         graph_widget = QWidget()
         right_layout = QVBoxLayout()
         
-        # Create figure and canvas
-        self.fig = plt.figure()  # Changed from self.figure to self.fig to match config.py
-        self.plot_canvas = FigureCanvas(self.fig)
-        self.axis = self.fig.add_subplot(111, projection="3d")  # Changed to match config.py
+
+        self.plot_canvas = PlotCanvas(self)
         self.toolbar = NavigationToolbar(self.plot_canvas, self)
         
         # Add plot widgets to right layout
@@ -189,34 +251,60 @@ class MainWindow(QMainWindow):
 ############################################## Control Functions
     def draw_envelope(self):
         try:
-            env_len = float(self.E_len.text())
-            env_per = float(self.E_per.text())
+            L = float(self.E_len.text())
+            R = float(self.E_rad.text())
+            D1 = float(self.E_per.text())
+            # TODO: idiot proof
+            if L < 50:
+                env_err_message = "Length too short"
+                raise ValueError("Length too long")
+            if R > 50:
+                raise ValueError("Radius too long")
+            if D1 > L:
+                raise ValueError("Nose length too long")
             
-            # TODO: Add your plotting logic here
-            print(f"Drawing envelope with Length: {env_len} and percent: {env_per}")
+            
+            #############################################
+            self.logback.append(f"Drawing envelope with:")
             
             # Create example 3D plot
-            x = np.linspace(0, env_len, 100)
-            y = np.sin(x * env_per)
-            z = np.zeros_like(x)
+            # x = np.linspace(0, env_len, 100)
+            # y = np.sin(x * env_per)
+            # z = np.zeros_like(x)
+            # self.axis.plot(x, y, z)
             
+            self.low_pnt, self.env_tri, self.env_verts = draw_envelope(self,L,R,D1)
             
-            self.axis.plot(x, y, z)
             
             self.plot_canvas.draw()
             
             
             
         except ValueError:
+            self.logback.append(f"Error: {env_err_message}")
             QMessageBox.warning(self, "Invalid Input")
 
 
 
+    def draw_gondola(self):
+        try:
+            L = float(self.gondola_len.text())
+            W = float(self.gondola_wid.text())
+            H = float(self.gondola_height.text())
+            
+            if L < 1 or W < 1 or H < 1:
+                gond_err_message = "Dimensions too small"
+                raise ValueError("Dimensions too small")
+            
+            self.logback.append(f"Drawing gondola with:")
+
+        except ValueError:
+                    self.logback.append(f"Error: {gond_err_message}")
+                    QMessageBox.warning(self, "Invalid Input")
 
 
 
-
-
+###################################### 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()

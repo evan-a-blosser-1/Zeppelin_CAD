@@ -287,14 +287,15 @@ class MainWindow(QMainWindow):
 
 
     def draw_gondola(self):
+        if self.low_pnt == None:
+            gond_err_message = "Please Build the Main Envelope First "
+            raise ValueError("Please Build the Main Envelope First ")
+        
         try:
             L = float(self.gondola_len.text())
             W = float(self.gondola_wid.text())
             H = float(self.gondola_height.text())
             
-            if L < 1 or W < 1 or H < 1:
-                gond_err_message = "Dimensions too small"
-                raise ValueError("Dimensions too small")
             
             self.logback.append(f"Drawing gondola with:")
 

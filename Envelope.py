@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
 import sympy as sp
+
 def draw_envelope(main_window,L,R,D1):
     main_window.logback.append(f"Creating envelope with L={L}, R={R}, Percent={D1}")
     # Length envelope

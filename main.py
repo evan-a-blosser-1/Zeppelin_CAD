@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
         ##########
         # Buttons
         self.draw_gond_button = QPushButton("Draw Gondola")
-        self.draw_env_button.clicked.connect(self.draw_gondola)
+        self.draw_gond_button.clicked.connect(self.draw_gondola)
         
         ###
         # layout 
@@ -155,10 +155,37 @@ class MainWindow(QMainWindow):
         
         #####################################
         # Fins
-        fin_layout.addWidget(QLabel("Number of Fins:"))
-        fin_layout.addWidget(QLineEdit())
-        fin_layout.addStretch()
+        fin_grid = QGridLayout()
+        self.fin_label = QLabel("Fin Base: (m)")
+        self.fin_len = QLineEdit("3")
+        self.fin_wid_label = QLabel("Fin Tip: (m)")
+        self.fin_wid = QLineEdit("1")
+        self.fin_height_label = QLabel("Fin Height: (m)")
+        self.fin_height = QLineEdit("1")
+        self.fin_dis_label = QLabel("Distance From Nose: (m)")
+        self.fin_dis = QLineEdit("50")
+        # 
+        self.fin_num_label = QLabel("Number of Fins:")
+        self.fin_num = QLineEdit("4")
         
+        fin_grid.addWidget(self.fin_label, 0, 0)
+        fin_grid.addWidget(self.fin_len, 0, 1)
+        fin_grid.addWidget(self.fin_wid_label, 1, 0)
+        fin_grid.addWidget(self.fin_wid, 1, 1)
+        fin_grid.addWidget(self.fin_height_label, 2, 0)
+        fin_grid.addWidget(self.fin_height, 2, 1)
+        fin_grid.addWidget(self.fin_dis_label, 3, 0)
+        fin_grid.addWidget(self.fin_dis, 3, 1)
+        fin_grid.addWidget(self.fin_num_label, 4, 0)
+        fin_grid.addWidget(self.fin_num, 4, 1)
+        ########
+        self.draw_fin_button = QPushButton("Draw Fins")
+        self.draw_fin_button.clicked.connect(self.draw_fin)
+        
+        
+        fin_layout.addLayout(fin_grid)
+        fin_layout.addWidget(self.draw_fin_button)
+        fin_layout.addStretch()
         
         ######
         ######
@@ -288,8 +315,9 @@ class MainWindow(QMainWindow):
 
 
     def draw_gondola(self):
-        if self.low_pnt == None:
+        if self.low_pnt.any() == None:
             gond_err_message = "Please Build the Main Envelope First "
+            self.logback.append(f"Error: {gond_err_message}")
             raise ValueError("Please Build the Main Envelope First ")
         
         try:
@@ -302,6 +330,31 @@ class MainWindow(QMainWindow):
 
         except ValueError:
                     self.logback.append(f"Error: {gond_err_message}")
+                    QMessageBox.warning(self, "Invalid Input")
+
+
+
+
+
+    def draw_fin(self):
+        if self.low_pnt.any() == None:
+            fin_err_message = "Please Build the Main Envelope First "
+            self.logback.append(f"Error: {fin_err_message}")
+            raise ValueError("Please Build the Main Envelope First ")
+        
+        try:
+            L = float(self.fin_len.text())
+            W = float(self.fin_wid.text())
+            H = float(self.fin_height.text())
+            
+            # TODO: Add funciton
+            
+            
+            
+            self.logback.append(f"Drawing fins with:")
+
+        except ValueError:
+                    self.logback.append(f"Error: {fin_err_message}")
                     QMessageBox.warning(self, "Invalid Input")
 
 

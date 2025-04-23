@@ -9,7 +9,7 @@ U = np.linspace(0, -1.5, N)
 W = np.linspace(0, np.pi, N) 
 u,w = np.meshgrid(U, W)
 
-Px = np.cos(u)*np.sin(w) 
+Px = np.cos(u)*np.sin(w)
 Py = np.cos(u)*np.cos(w)
 Pz = np.sin(u)
 

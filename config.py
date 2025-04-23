@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import trimesh
-from PyQt5.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox  
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 

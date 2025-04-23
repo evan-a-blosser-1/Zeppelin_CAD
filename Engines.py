@@ -95,7 +95,6 @@ Y_val4 = Y_eq4(U)
 Z_val4 = Z_eq4(U)
 #################
 
-
 plt.plot(Y_val1, Z_val1, label='Curve 1', color='blue')
 plt.plot(Y_val2, Z_val2, label='Curve 2', color='red')
 plt.plot(Y_val3, Z_val3, label='Curve 3', color='green')
@@ -116,8 +115,17 @@ mesh = Poly3DCollection(vertices[triangles.triangles])
 # Create a 3D plot
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
+#ax.add_collection3d(mesh)
+# Triangulated surface
+ax.plot_trisurf(Px.flatten(), Py.flatten(), Pz.flatten(), alpha=0.5)
 
+# Contour plot
+ax.contour3D(Px, Py, Pz)
 
+# Surface with color mapping
+surf = ax.plot_surface(Px, Py, Pz, cmap='viridis', 
+                      linewidth=0, antialiased=False)
+fig.colorbar(surf)
 # Set labels
 ax.set_xlabel('X')
 ax.set_ylabel('Y')

@@ -10,7 +10,8 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayo
                                QFileSystemModel,QGridLayout,QMessageBox)
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush
 from PySide6.QtCore import Qt, QRectF
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
 sys.dont_write_bytecode = True
 from config import clear_plot
@@ -65,7 +66,7 @@ class MainWindow(QMainWindow):
         fin_tab  = QWidget()
         
         # Add tabs to the panel
-        left_panel.addTab(env_tab,  "Main Envelope")
+        left_panel.addTab(env_tab,  "Envelope")
         left_panel.addTab(gond_tab, "Gondola")
         left_panel.addTab(eng_tab,  "Engine")
         left_panel.addTab(fin_tab,  "Fins")

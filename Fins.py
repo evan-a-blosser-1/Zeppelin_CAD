@@ -10,6 +10,7 @@ R = int(input("Enter the radius of the Main Envelope:")) # max radius of the env
 lines = 20
 
 
+
 h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
 # a = input("Enter the angle of the fin (degrees): ")
 b = int(input("Enter the base of the fin > 0:"))
@@ -36,9 +37,10 @@ elif h <= R:
 else:
     print ("Fin height is good!")
 
-##### TO DO: check if the fin tip is greater than the fin base
 
-ax = plt.axes(projection='3d')
+### Create NACA 0012 airfoil points/spline
+
+
 ### Create points for the surface path of the initial fin construction
 # four points for the corners of the fin
 P0 = np.array([0, 0, 0]) # origin
@@ -200,7 +202,7 @@ for i in range(len(u_value)):
 
 plt.xlabel('X-axis')
 plt.ylabel('Y-axis')
-
+ax = plt.axes(projection='3d')
 # Plot the edges of the fin and airfoil points by connecting the points
 ax.plot([P0[0], P1[0]], [P0[1], P1[1]], [P0[2], P1[2]], color='blue', label='Base Edge')  # P0 to P1
 ax.plot([P1[0], P2[0]], [P1[1], P2[1]], [P1[2], P2[2]], color='green', label='Height Edge')  # P1 to P2
@@ -236,4 +238,3 @@ ax.set_ybound(0, view_scale) # set the y-axis limit for proper scale in the visu
 plt.show()
 ### MERGE COMMENTS
 
-### Create NACA 0012 airfoil points/spline

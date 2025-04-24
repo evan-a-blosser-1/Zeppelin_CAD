@@ -7,7 +7,7 @@ w = sp.symbols('w')
 ### basic Fin Calculations
 R = int(input("Enter the radius of the Main Envelope:")) # max radius of the envelope (SET FORM OTHER PARAMETERS)
 
-lines = 25
+lines = 20
 
 
 h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
@@ -24,7 +24,7 @@ def Ro_x(theta, Px, Py, Pz): # rotation of a point around the x-axis
 # sanity check the inputs
 if h < 0:
     print("Height cannot be negative")
-    h = input("Enter the height of the fin (from centerline) > envelope radius or 0:")
+    h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
 elif h <= R:
     print ("Height is equal to envelope radius.")
     height_checkinput = input("Proceed? (y/n): ")
@@ -32,7 +32,7 @@ elif h <= R:
         h = R   
         print("Height set to inital entry.")
     else:
-        h = input("Enter the height of the fin (from centerline) > envelope radius or 0:")
+        h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
 else:
     print ("Fin height is good!")
 
@@ -137,21 +137,71 @@ for i in range(len(u_value)):
 ## create points for the underside of the fin surface
 
 P10 = Ro_x(-np.pi, P5[0], P5[1], P5[2]) # Underside Root max camber point
-P11_rotate = Ro_x(-np.pi, P8[0], 0, P8[2]) # Underside Tip max camber point
+P11_rotate = Ro_x(-np.pi, P8[0], 0, P8[2]) # Underside Tip max camber point at axis
 
-P11_final = np.array([P11_rotate[0], h, P11_rotate[2]]) # Underside Tip max camber point
+P11_final = np.array([P11_rotate[0], h, P11_rotate[2]]) # Underside Tip max camber point at the actual tip of the fin
 print('P5: ',P5, '\nP10: ',P10)
 print('P8: ',P8, '\nP11: ',P11_final)
 
+P_mirror_base = np.array([P0, P10, P1])
+P_mirror_tip = np.array([P7, P11_final, P9])
 
+# parametric lines for base and tip mirrored airfoil curve
+P_mirror_base_u = np.matmul(B_airfoil_s, P_mirror_base) # B-spline matrix for the mirrored base airfoil points
+P_mirror_tip_u = np.matmul(B_airfoil_s, P_mirror_tip) # B-spline matrix for the mirrored tip airfoil points
 
+print('P_mirror_base_u: ',P_mirror_base_u,'\n','P_mirror_tip_u: ',P_mirror_tip_u)
 
+## fin mirrored airfoil converstion from P_u
+foilbase_mirrored_x = sp.lambdify(u, P_mirror_base_u[0,0], modules='numpy')
+foilbase_mirrored_x_values = foilbase_mirrored_x(u_value) # x-coordinates of the airfoil path
+foilbase_mirrored_y_values = 0
+foilbase_mirrored_z = sp.lambdify(u, P_mirror_base_u[0,2], modules='numpy') 
+foilbase_mirrored_z_values = foilbase_mirrored_z(u_value) # z-coordinates of the airfoil path
+
+## fin tip mirrored airfoil converstion from P_u
+foiltip_mirrored_x = sp.lambdify(u, P_mirror_tip_u[0,0], modules='numpy')
+foiltip_mirrored_x_values = foiltip_mirrored_x(u_value) # x-coordinates of the airfoil path
+#print('foilbase_x: ',foilbase_x_values)
+foiltip_mirrored_y_values = h
+foiltip_mirrored_z = sp.lambdify(u, P_mirror_tip_u[0,2], modules='numpy') 
+foiltip_mirrored_z_values = foiltip_mirrored_z(u_value) # z-coordinates of the airfoil path
+#print('foilbase_z: ',foilbase_z_values)
+
+# bottom surface construction
+
+S_uw_airfoil_mirrored = (1-w)*P_mirror_base_u + w*P_mirror_tip_u # surface of the fin
+
+#print('S_uw_airfoil: ',S_uw_airfoil)
+
+S_surface_mirrored_x = sp.lambdify((u,w), S_uw_airfoil_mirrored[0,0], modules='numpy')
+S_surface_mirrored_y = sp.lambdify((u,w), S_uw_airfoil_mirrored[0,1], modules='numpy')
+S_surface_mirrored_z = sp.lambdify((u,w), S_uw_airfoil_mirrored[0,2], modules='numpy')
+u_value = np.linspace(0, 1, lines) # u values for the airfoil path
+w_value = np.linspace(0, 1, lines) # w values for the airfoil path
+
+S_surface_values_mirrored_x = np.zeros((len(u_value), len(w_value))) # initialize the surface values
+S_surface_values_mirrored_y = np.zeros((len(u_value), len(w_value))) # initialize the surface values
+S_surface_values_mirrored_z = np.zeros((len(u_value), len(w_value))) # initialize the surface values
+ribs_mirrored_x = np.zeros((len(u_value), len(w_value))) # initialize the ribs values
+ribs_mirrored_y = np.zeros((len(u_value), len(w_value))) # initialize the ribs values
+ribs_mirrored_z = np.zeros((len(u_value), len(w_value))) # initialize the ribs values
+
+for i in range(len(u_value)):
+    for j in range(len(w_value)):
+        S_surface_values_mirrored_x[i, j] = S_surface_mirrored_x(u_value[i], w_value[j]) # surface of the fin
+        S_surface_values_mirrored_y[i, j] = S_surface_mirrored_y(u_value[i], w_value[j]) # surface of the fin
+        S_surface_values_mirrored_z[i, j] = S_surface_mirrored_z(u_value[i], w_value[j]) # surface of the fin
+
+        ribs_mirrored_x[i,j] = S_surface_mirrored_x(u_value[j], w_value[i])
+        ribs_mirrored_y[i,j] = S_surface_mirrored_y(u_value[j], w_value[i])
+        ribs_mirrored_z[i,j] = S_surface_mirrored_z(u_value[j], w_value[i])
 ### Create a 3D plot
 
 plt.xlabel('X-axis')
 plt.ylabel('Y-axis')
 
-# Plot the edges of the fin by connecting the points
+# Plot the edges of the fin and airfoil points by connecting the points
 ax.plot([P0[0], P1[0]], [P0[1], P1[1]], [P0[2], P1[2]], color='blue', label='Base Edge')  # P0 to P1
 ax.plot([P1[0], P2[0]], [P1[1], P2[1]], [P1[2], P2[2]], color='green', label='Height Edge')  # P1 to P2
 ax.plot([P2[0], P3[0]], [P2[1], P3[1]], [P2[2], P3[2]], color='red', label='Tip Edge')  # P2 to P3
@@ -164,18 +214,25 @@ ax.plot([P10[0], P1[0]],[P10[1], P1[1]], [P10[2], P1[2]], color='brown', label='
 ax.plot([P11_final[0], P3[0]],[P11_final[1], P3[1]], [P11_final[2], P3[2]], color='pink', label='Airfoil Bottom Leading Edge')  # P11 to P3
 ax.plot([P11_final[0], P2[0]],[P11_final[1], P2[1]], [P11_final[2], P2[2]], color='grey', label='Airfoil Bottom Leading Edge')  # P11 to P8
 
+# Plot the airfoil base and tip curves for original and mirrored points for full airfoil
 plt.plot(foilbase_x_values, foilbase_y_values, foilbase_z_values, color='black', label='Airfoil Path')  # Airfoil path
 plt.plot(foiltip_x_values, foiltip_y_values, foiltip_z_values, color='black', label='Airfoil Top Path')  # Airfoil path
+plt.plot(foiltip_mirrored_x_values, foiltip_mirrored_y_values, foiltip_mirrored_z_values, color='black', label='Airfoil Bottom Path')  # Airfoil path
+plt.plot(foilbase_mirrored_x_values, foilbase_mirrored_y_values, foilbase_mirrored_z_values, color='black', label='Airfoil Bottom Path')  # Airfoil path
 
+# Plot the surface lines of the airfoil
 for i in range(len(u_value)):
-    plt.plot(S_surface_values_x[i,:], S_surface_values_y[i,:], S_surface_values_z[i,:], label='S(u,w)')
-    plt.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], label='Ribs') # ribs of the fin
+    plt.plot(S_surface_values_x[i,:], S_surface_values_y[i,:], S_surface_values_z[i,:], label='S(u,w)') # spanwise lines
+    plt.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], label='Ribs') # ribs of the airfoil fin
+    plt.plot(S_surface_values_mirrored_x[i,:], S_surface_values_mirrored_y[i,:], S_surface_values_mirrored_z[i,:], label='S(u,w)') # spanwise lines
+    plt.plot(ribs_mirrored_x[i,:], ribs_mirrored_y[i,:], ribs_mirrored_z[i,:], label='Ribs') # ribs of the airfoil fin
 
 # Add a legend for clarity
 ax.legend(bbox_to_anchor = (1.1, 0.1))
-ax.set_zbound(0, 15) # set the z-axis limit for proper scale in the visualization
-ax.set_xbound(0,15) # set the x-axis limit for proper scale in the visualization
-ax.set_ybound(0,15) # set the y-axis limit for proper scale in the visualization
+view_scale = int(input("set axis length for 3d plot:"))
+ax.set_zbound(0, view_scale) # set the z-axis limit for proper scale in the visualization
+ax.set_xbound(0, view_scale) # set the x-axis limit for proper scale in the visualization
+ax.set_ybound(0, view_scale) # set the y-axis limit for proper scale in the visualization
 plt.show()
 ### MERGE COMMENTS
 

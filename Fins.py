@@ -6,6 +6,8 @@ u = sp.symbols('u')
 ### basic Fin Calculations
 R = 5 # max radius of the envelope (SET FORM OTHER PARAMETERS)
 
+lines = 25
+
 
 h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
 # a = input("Enter the angle of the fin (degrees): ")
@@ -65,34 +67,67 @@ foilbase_z_values = foilbase_z(u_value) # z-coordinates of the airfoil path
 
 ## Create points for tip of the fin by scaling the base airfoil points
 foil_scale = t/b # scale factor for the airfoil points
-print(foil_scale)
+print('tip/root ratio:',foil_scale)
 P_airfoil_scale = np.array([[P4[0],P5[0],P6[0],1], [P4[1],P5[1],P6[1],1], [P4[2],P5[2],P6[2],1], [1,1,1,1]]) # scale the airfoil points
 Scale_matrix = np.array([[foil_scale,0,0,b-t],[0,foil_scale,0,h],[0,0,foil_scale,0],[0,0,0,foil_scale]])
 
 print('P_airfoil_scale: \n',P_airfoil_scale)
 print('Scale_matrix: \n',Scale_matrix)
 
-P_airfoil_top = np.matmul(Scale_matrix,P_airfoil_scale)  # scale the airfoil points
-print('P_airfoil_top:\n', P_airfoil_top)
+P_airfoil_tip = np.matmul(Scale_matrix,P_airfoil_scale)  # scale the airfoil points
+#print('P_airfoil_tip:\n', P_airfoil_tip)
 
 ## Create points for the top airfoil by using the scaled and translated airfoil points
-P7 = np.array([P_airfoil_top[0,0],P_airfoil_top[1,0],P_airfoil_top[2,0]]) # leading edge of the airfoil
-P8 = np.array([P_airfoil_top[0,1],P_airfoil_top[1,1],P_airfoil_top[2,1]]) # max camber of the airfoil
-P9 = np.array([P_airfoil_top[0,2],P_airfoil_top[1,2],P_airfoil_top[2,2]]) # trailing edge of the airfoil
+P7 = np.array([P_airfoil_tip[0,0],P_airfoil_tip[1,0],P_airfoil_tip[2,0]]) # leading edge of the airfoil
+P8 = np.array([P_airfoil_tip[0,1],P_airfoil_tip[1,1],P_airfoil_tip[2,1]]) # max camber of the airfoil
+P9 = np.array([P_airfoil_tip[0,2],P_airfoil_tip[1,2],P_airfoil_tip[2,2]]) # trailing edge of the airfoil
 
-P_airfoil_top = np.array([P7, P8, P9]) # top airfoil points
+P_airfoil_tip = np.array([P7, P8, P9]) # top airfoil points
 
-P_airfoil_top_s = np.matmul(B_airfoil_s, P_airfoil_top) # B-spline matrix for the top airfoil points
+P_airfoil_tip_s = np.matmul(B_airfoil_s, P_airfoil_tip) # B-spline matrix for the top airfoil points
 
-foiltip_x = sp.lambdify(u, P_airfoil_top_s[0,0], modules='numpy')
-foiltip_x_values = foilbase_x(u_value) # x-coordinates of the airfoil path
+## fin tip airfoil converstion from P_u
+foiltip_x = sp.lambdify(u, P_airfoil_tip_s[0,0], modules='numpy')
+foiltip_x_values = foiltip_x(u_value) # x-coordinates of the airfoil path
 #print('foilbase_x: ',foilbase_x_values)
 foiltip_y_values = h
-foiltip_z = sp.lambdify(u, P_airfoil_top_s[0,2], modules='numpy') 
-foiltip_z_values = foilbase_z(u_value) # z-coordinates of the airfoil path
+foiltip_z = sp.lambdify(u, P_airfoil_tip_s[0,2], modules='numpy') 
+foiltip_z_values = foiltip_z(u_value) # z-coordinates of the airfoil path
 #print('foilbase_z: ',foilbase_z_values)
 
-print('P_airfoil_top_s: ',P_airfoil_top_s)
+#print('P_airfoil_tip_s: ',P_airfoil_tip_s)
+
+#### Surface plot of the fin
+w = sp.symbols('w')
+S_uw_airfoil = (1-w)*P_airfoil_s + w*P_airfoil_tip_s # surface of the fin
+
+#print('S_uw_airfoil: ',S_uw_airfoil)
+
+S_surface_x = sp.lambdify((u,w), S_uw_airfoil[0,0], modules='numpy')
+S_surface_y = sp.lambdify((u,w), S_uw_airfoil[0,1], modules='numpy')
+S_surface_z = sp.lambdify((u,w), S_uw_airfoil[0,2], modules='numpy')
+u_value = np.linspace(0, 1, lines) # u values for the airfoil path
+w_value = np.linspace(0, 1, lines) # w values for the airfoil path
+
+S_surface_values_x = np.zeros((len(u_value), len(w_value))) # initialize the surface values
+S_surface_values_y = np.zeros((len(u_value), len(w_value))) # initialize the surface values
+S_surface_values_z = np.zeros((len(u_value), len(w_value))) # initialize the surface values
+ribs_x = np.zeros((len(u_value), len(w_value))) # initialize the ribs values
+ribs_y = np.zeros((len(u_value), len(w_value))) # initialize the ribs values
+ribs_z = np.zeros((len(u_value), len(w_value))) # initialize the ribs values
+
+for i in range(len(u_value)):
+    for j in range(len(w_value)):
+        S_surface_values_x[i, j] = S_surface_x(u_value[i], w_value[j]) # surface of the fin
+        S_surface_values_y[i, j] = S_surface_y(u_value[i], w_value[j]) # surface of the fin
+        S_surface_values_z[i, j] = S_surface_z(u_value[i], w_value[j]) # surface of the fin
+
+        ribs_x[i,j] = S_surface_x(u_value[j], w_value[i])
+        ribs_y[i,j] = S_surface_y(u_value[j], w_value[i])
+        ribs_z[i,j] = S_surface_z(u_value[j], w_value[i])
+
+
+
 
 ### Create a 3D plot
 
@@ -109,8 +144,15 @@ ax.plot([P5[0], P6[0]], [P5[1], P6[1]], [P5[2], P6[2]], color='cyan', label='Air
 ax.plot([P7[0], P8[0]], [P7[1], P8[1]], [P7[2], P8[2]], color='yellow', label='Airfoil Top Leading Edge')  # P7 to P8
 ax.plot([P8[0], P9[0]], [P8[1], P9[1]], [P8[2], P9[2]], color='magenta', label='Airfoil Top Trailing Edge')  # P8 to P9
 plt.plot(foilbase_x_values, foilbase_y_values, foilbase_z_values, color='black', label='Airfoil Path')  # Airfoil path
+plt.plot(foiltip_x_values, foiltip_y_values, foiltip_z_values, color='black', label='Airfoil Top Path')  # Airfoil path
+
+for i in range(len(u_value)):
+    plt.plot(S_surface_values_x[i,:], S_surface_values_y[i,:], S_surface_values_z[i,:], label='S(u,w)')
+    plt.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], label='Ribs') # ribs of the fin
+
 # Add a legend for clarity
 ax.legend(bbox_to_anchor = (1.1, 0.1))
+ax.set_zbound(0, h) # set the z-axis limit for proper scale in the visualization
 plt.show()
 
 

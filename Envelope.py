@@ -45,10 +45,6 @@ def draw_envelope(main_window,L,R,D1):
     ##############
     U, W = np.meshgrid(u_val, w_val)
     ####################### 
-    from icecream import ic 
-    ic(P)
-    print(P.shape)
-    print(P[0,0])
     #############
     X_eq = sp.lambdify(u, P[0,0])
     Z_eq = sp.lambdify(u, P[0,2])

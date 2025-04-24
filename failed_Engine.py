@@ -47,6 +47,9 @@ print(P_u2.shape)
 print(P_u1[0])
 print(P_u1[1])
 print(P_u1[2])
+print(P_u2)
+print(P_u3)
+print(P_u4)
 # ################
 N = 25
 U = np.linspace(0, 1, N)
@@ -105,9 +108,9 @@ plt.show()
 
 
 # Create combined mesh arrays
-Px = np.vstack((X_val1, X_val2, X_val3, X_val4))
-Py = np.vstack((Y_val1, Y_val2, Y_val3, Y_val4))
-Pz = np.vstack((Z_val1, Z_val2, Z_val3, Z_val4))
+Px = np.vstack((X_val1, X_val2))
+Py = np.vstack((Y_val1, Y_val2))
+Pz = np.vstack((Z_val1, Z_val2))
 vertices = np.stack((Px.flatten(), Py.flatten(), Pz.flatten()), axis=-1)
 triangles = matplotlib.tri.Triangulation(vertices[:,0], vertices[:,1])
 mesh = Poly3DCollection(vertices[triangles.triangles])

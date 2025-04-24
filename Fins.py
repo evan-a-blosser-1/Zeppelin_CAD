@@ -154,6 +154,6 @@ for i in range(len(u_value)):
 ax.legend(bbox_to_anchor = (1.1, 0.1))
 ax.set_zbound(0, h) # set the z-axis limit for proper scale in the visualization
 plt.show()
-
+### MERGE COMMENTS
 
 ### Create NACA 0012 airfoil points/spline

@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 import sympy as sp
 u = sp.symbols('u')
+w = sp.symbols('w')
 ### basic Fin Calculations
-R = 5 # max radius of the envelope (SET FORM OTHER PARAMETERS)
+R = int(input("Enter the radius of the Main Envelope:")) # max radius of the envelope (SET FORM OTHER PARAMETERS)
 
 lines = 25
 
@@ -13,6 +14,12 @@ h = int(input("Enter the height of the fin (from centerline) > envelope radius o
 # a = input("Enter the angle of the fin (degrees): ")
 b = int(input("Enter the base of the fin > 0:"))
 t = int(input("Enter the length of the fin tip > 0 or base: "))
+
+
+def Ro_x(theta, Px, Py, Pz): # rotation of a point around the x-axis
+    Ro_x = np.array([[1,0,0],[0, np.cos(theta), -np.sin(theta)],[0, np.sin(theta), np.cos(theta)]])
+    P_rotated = np.matmul(Ro_x, np.array([Px, Py, Pz]))
+    return P_rotated
 
 # sanity check the inputs
 if h < 0:
@@ -71,7 +78,7 @@ print('tip/root ratio:',foil_scale)
 P_airfoil_scale = np.array([[P4[0],P5[0],P6[0],1], [P4[1],P5[1],P6[1],1], [P4[2],P5[2],P6[2],1], [1,1,1,1]]) # scale the airfoil points
 Scale_matrix = np.array([[foil_scale,0,0,b-t],[0,foil_scale,0,h],[0,0,foil_scale,0],[0,0,0,foil_scale]])
 
-print('P_airfoil_scale: \n',P_airfoil_scale)
+# print('P_airfoil_scale: \n',P_airfoil_scale)
 print('Scale_matrix: \n',Scale_matrix)
 
 P_airfoil_tip = np.matmul(Scale_matrix,P_airfoil_scale)  # scale the airfoil points
@@ -98,7 +105,7 @@ foiltip_z_values = foiltip_z(u_value) # z-coordinates of the airfoil path
 #print('P_airfoil_tip_s: ',P_airfoil_tip_s)
 
 #### Surface plot of the fin
-w = sp.symbols('w')
+
 S_uw_airfoil = (1-w)*P_airfoil_s + w*P_airfoil_tip_s # surface of the fin
 
 #print('S_uw_airfoil: ',S_uw_airfoil)
@@ -127,6 +134,16 @@ for i in range(len(u_value)):
         ribs_z[i,j] = S_surface_z(u_value[j], w_value[i])
 
 
+## create points for the underside of the fin surface
+
+P10 = Ro_x(-np.pi, P5[0], P5[1], P5[2]) # Underside Root max camber point
+P11_rotate = Ro_x(-np.pi, P8[0], 0, P8[2]) # Underside Tip max camber point
+
+P11_final = np.array([P11_rotate[0], h, P11_rotate[2]]) # Underside Tip max camber point
+print('P5: ',P5, '\nP10: ',P10)
+print('P8: ',P8, '\nP11: ',P11_final)
+
+
 
 
 ### Create a 3D plot
@@ -142,7 +159,11 @@ ax.plot([P3[0], P0[0]], [P3[1], P0[1]], [P3[2], P0[2]], color='purple', label='D
 ax.plot([P4[0], P5[0]], [P4[1], P5[1]], [P4[2], P5[2]], color='orange', label='Airfoil Leading Edge')  # P4 to P5
 ax.plot([P5[0], P6[0]], [P5[1], P6[1]], [P5[2], P6[2]], color='cyan', label='Airfoil Trailing Edge')  # P5 to P6
 ax.plot([P7[0], P8[0]], [P7[1], P8[1]], [P7[2], P8[2]], color='yellow', label='Airfoil Top Leading Edge')  # P7 to P8
-ax.plot([P8[0], P9[0]], [P8[1], P9[1]], [P8[2], P9[2]], color='magenta', label='Airfoil Top Trailing Edge')  # P8 to P9
+ax.plot([P0[0], P10[0]],[P0[1], P10[1]], [P0[1], P10[2]], color='magenta', label='Airfoil Top Trailing Edge')  # P0 to P10
+ax.plot([P10[0], P1[0]],[P10[1], P1[1]], [P10[2], P1[2]], color='brown', label='Airfoil Bottom Trailing Edge')  # P10 to P1
+ax.plot([P11_final[0], P3[0]],[P11_final[1], P3[1]], [P11_final[2], P3[2]], color='pink', label='Airfoil Bottom Leading Edge')  # P11 to P3
+ax.plot([P11_final[0], P2[0]],[P11_final[1], P2[1]], [P11_final[2], P2[2]], color='grey', label='Airfoil Bottom Leading Edge')  # P11 to P8
+
 plt.plot(foilbase_x_values, foilbase_y_values, foilbase_z_values, color='black', label='Airfoil Path')  # Airfoil path
 plt.plot(foiltip_x_values, foiltip_y_values, foiltip_z_values, color='black', label='Airfoil Top Path')  # Airfoil path
 
@@ -152,7 +173,9 @@ for i in range(len(u_value)):
 
 # Add a legend for clarity
 ax.legend(bbox_to_anchor = (1.1, 0.1))
-ax.set_zbound(0, h) # set the z-axis limit for proper scale in the visualization
+ax.set_zbound(0, 15) # set the z-axis limit for proper scale in the visualization
+ax.set_xbound(0,15) # set the x-axis limit for proper scale in the visualization
+ax.set_ybound(0,15) # set the y-axis limit for proper scale in the visualization
 plt.show()
 ### MERGE COMMENTS
 

@@ -87,7 +87,7 @@ P_airfoil_top_s = np.matmul(B_airfoil_s, P_airfoil_top) # B-spline matrix for th
 foiltip_x = sp.lambdify(u, P_airfoil_top_s[0,0], modules='numpy')
 foiltip_x_values = foilbase_x(u_value) # x-coordinates of the airfoil path
 #print('foilbase_x: ',foilbase_x_values)
-foiltip_y_values = 0
+foiltip_y_values = h
 foiltip_z = sp.lambdify(u, P_airfoil_top_s[0,2], modules='numpy') 
 foiltip_z_values = foilbase_z(u_value) # z-coordinates of the airfoil path
 #print('foilbase_z: ',foilbase_z_values)

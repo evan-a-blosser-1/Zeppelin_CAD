@@ -52,25 +52,29 @@ T_t   = np.array([[1, 0, 0, Mi],[0,1,0,Ni],[0,0,1,Oi],[0,0,0,1]])
 print('-----------------------')
 print(p_i)
 p_i = np.matmul(T_t,Pnt_0)
-print(p_i)
+print(p_i[0,0])
 print('-----------------------')
 pi1x = p_i[0,0]
 pi1y = p_i[1,0]
 pi1z = p_i[2,0]
+print(pi1x,pi1y,pi1z)
 #
 pi2x = p_i[0,1]
 pi2y = p_i[1,1]
 pi2z = p_i[2,1]
+print(pi2x,pi2y,pi2z)
 #
 #
 pi3x = p_i[0,2]
 pi3y = p_i[1,2]
 pi3z = p_i[2,2]
+print(pi3x,pi3y,pi3z)
 #
 #
 pi4x = p_i[0,3]
 pi4y = p_i[1,3]
 pi4z = p_i[2,3]
+print(pi4x,pi4y,pi4z)
 
 
 

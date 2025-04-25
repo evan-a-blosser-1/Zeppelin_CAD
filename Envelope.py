@@ -82,12 +82,12 @@ def draw_envelope(main_window,L,R,D1):
     lowest_z = np.min(vertices[:, 2])
     lowest_z_indices = np.where(vertices[:, 2] == lowest_z)[0]
     lowest_points = vertices[lowest_z_indices]
-    main_window.plot_canvas.axis.scatter(lowest_points[:, 0], 
-                                    lowest_points[:, 1], 
-                                    lowest_points[:, 2], 
-                                    color='red', 
-                                    s=100,  # larger point size
-                                    label='Lowest points')
+    # main_window.plot_canvas.axis.scatter(lowest_points[:, 0], 
+    #                                 lowest_points[:, 1], 
+    #                                 lowest_points[:, 2], 
+    #                                 color='red', 
+    #                                 s=100,  # larger point size
+    #                                 label='Lowest points')
     print("Lowest points:")
     print(lowest_points)
     return lowest_points, triangles, vertices

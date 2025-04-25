@@ -7,7 +7,7 @@ from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                                QWidget, QLabel, QLineEdit, QPushButton, QTextEdit, QTabWidget,
                                QMenuBar, QComboBox, QScrollArea, QListView, QFileDialog, 
-                               QFileSystemModel,QGridLayout,QMessageBox)
+                               QFileSystemModel,QGridLayout, QSlider, QMessageBox)
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush
 from PySide6.QtCore import Qt, QRectF
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -16,6 +16,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 sys.dont_write_bytecode = True
 from config import clear_plot
 from Envelope import draw_envelope
+from Gondola import draw_gondola
 
 
 class PlotCanvas(FigureCanvas):
@@ -116,32 +117,33 @@ class MainWindow(QMainWindow):
         
         
         
-        ####################################
-        # Gondola Tab
+        # Gondola Tab Layout
+        gond_layout = QVBoxLayout(gond_tab)
         gond_grid = QGridLayout()
-        self.gondola_label = QLabel("Gondola Length: (m)")
-        self.gondola_len = QLineEdit("10")
-        self.gondola_wid_label = QLabel("Gondola Width: (m)")
-        self.gondola_wid = QLineEdit("3")
-        self.gondola_height_label = QLabel("Gondola Height: (m)")
-        self.gondola_height = QLineEdit("3")
-        
-        gond_grid.addWidget(self.gondola_label, 0, 0)
-        gond_grid.addWidget(self.gondola_len, 0, 1)
-        gond_grid.addWidget(self.gondola_wid_label, 1, 0)
-        gond_grid.addWidget(self.gondola_wid, 1, 1)
-        gond_grid.addWidget(self.gondola_height_label, 2, 0)
-        gond_grid.addWidget(self.gondola_height, 2, 1)
-        
-        
-        ##########
-        # Buttons
+        self.gondola_len = QLineEdit("10"); self.gondola_wid = QLineEdit("3"); self.gondola_height = QLineEdit("3")
+        gond_grid.addWidget(QLabel("Length (m)"), 0,0); gond_grid.addWidget(self.gondola_len, 0,1)
+        gond_grid.addWidget(QLabel("Width (m)"),  1,0); gond_grid.addWidget(self.gondola_wid, 1,1)
+        gond_grid.addWidget(QLabel("Height (m)"), 2,0); gond_grid.addWidget(self.gondola_height,2,1)
+
+        # Sliders for nose/tail sharpness & plateau
+        self.ns_slider = QSlider(Qt.Horizontal); self.ns_slider.setRange(1,10); self.ns_slider.setValue(2)
+        self.ts_slider = QSlider(Qt.Horizontal); self.ts_slider.setRange(1,10); self.ts_slider.setValue(2)
+        self.ps_slider = QSlider(Qt.Horizontal); self.ps_slider.setRange(0,100); self.ps_slider.setValue(100)
+        self.ns_label   = QLabel("Nose Sharpness: 2.0")
+        self.ts_label   = QLabel("Tail Sharpness: 2.0")
+        self.ps_label   = QLabel("Plateau Scale: 1.00")
+        # Connect
+        self.ns_slider.valueChanged.connect(lambda v: self.ns_label.setText(f"Nose Sharpness: {v/1.0:.1f}"))
+        self.ts_slider.valueChanged.connect(lambda v: self.ts_label.setText(f"Tail Sharpness: {v/1.0:.1f}"))
+        self.ps_slider.valueChanged.connect(lambda v: self.ps_label.setText(f"Plateau Scale: {v/100.0:.2f}"))
+
         self.draw_gond_button = QPushButton("Draw Gondola")
         self.draw_gond_button.clicked.connect(self.draw_gondola)
-        
-        ###
-        # layout 
+
         gond_layout.addLayout(gond_grid)
+        gond_layout.addWidget(self.ns_label); gond_layout.addWidget(self.ns_slider)
+        gond_layout.addWidget(self.ts_label); gond_layout.addWidget(self.ts_slider)
+        gond_layout.addWidget(self.ps_label); gond_layout.addWidget(self.ps_slider)
         gond_layout.addWidget(self.draw_gond_button)
         gond_layout.addStretch()
         
@@ -315,22 +317,32 @@ class MainWindow(QMainWindow):
 
 
     def draw_gondola(self):
-        if self.low_pnt.any() == None:
-            gond_err_message = "Please Build the Main Envelope First "
-            self.logback.append(f"Error: {gond_err_message}")
-            raise ValueError("Please Build the Main Envelope First ")
-        
-        try:
-            L = float(self.gondola_len.text())
-            W = float(self.gondola_wid.text())
-            H = float(self.gondola_height.text())
-            
-            
-            self.logback.append(f"Drawing gondola with:")
+        if self.low_pnt is None:
+            QMessageBox.warning(self, "Gondola Error", "Please draw the envelope first")
+            return
 
-        except ValueError:
-                    self.logback.append(f"Error: {gond_err_message}")
-                    QMessageBox.warning(self, "Invalid Input")
+        L  = float(self.gondola_len.text())
+        W  = float(self.gondola_wid.text())
+        H  = float(self.gondola_height.text())
+        ns = self.ns_slider.value()            # 1–10
+        ts = self.ts_slider.value()            # 1–10
+        ps = self.ps_slider.value() / 100.0    # 0.00–1.00
+
+        self.logback.append(f"Gondola → L={L}, W={W}, H={H}, nose_sharp={ns}, tail_sharp={ts}, plateau={ps}")
+
+        try:
+            verts, _ = draw_gondola(self,
+                                    length=L,
+                                    width=W,
+                                    height=H,
+                                    nose_sharp=ns,
+                                    tail_sharp=ts,
+                                    plateau_scale=ps)
+            self.gond_verts = verts
+        except Exception as e:
+            QMessageBox.critical(self, "Gondola Error", str(e))
+            self.logback.append(f"Gondola error: {e}")
+
 
 
 

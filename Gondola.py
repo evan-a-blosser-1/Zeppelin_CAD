@@ -77,6 +77,9 @@ def draw_gondola(main_window, length, width, height,
     ax.set_xlim(base_x - length/2, base_x + length/2)
     ax.set_ylim(base_y - width/2,  base_y + width/2)
     ax.set_zlim(base_z - width/2,  base_z + width/2)
+    ### 
+    # add in aspect - Evan 
+    main_window.plot_canvas.axis.set_aspect('equal', 'box')
     main_window.plot_canvas.draw()
 
     vertices = np.array(verts).reshape(-1, 3)

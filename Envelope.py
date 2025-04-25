@@ -74,6 +74,7 @@ def draw_envelope(main_window,L,R,D1):
     main_window.plot_canvas.axis.plot_wireframe(Px, Py, Pz, color='black', alpha=0.5)
     main_window.plot_canvas.axis.scatter(p_i[:,0], p_i[:,1], p_i[:,2], color='red', label='Control points')
     main_window.logback.append(f"Graphing...")
+    main_window.plot_canvas.axis.set_aspect('equal', 'box')
     main_window.plot_canvas.draw()
     ##############################
     
@@ -87,5 +88,6 @@ def draw_envelope(main_window,L,R,D1):
                                     color='red', 
                                     s=100,  # larger point size
                                     label='Lowest points')
-    
+    print("Lowest points:")
+    print(lowest_points)
     return lowest_points, triangles, vertices

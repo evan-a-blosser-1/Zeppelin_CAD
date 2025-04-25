@@ -29,15 +29,51 @@ p4y = Pm[1]
 p4z = Pm[2] 
 ###########
 p_i = np.array([[p1x,p1y,p1z],[p2x,p2y,p2z],[p3x,p3y,p3z],[p4x,p4y,p4z]])
+
 ######
 Mi = 0 
-Ni = 10
+Ni = 0
 Oi = 0
 ######
 Pnt_0 = np.array([[p1x,p2x,p3x,p4x],[p1y,p2y,p3y,p4y],[p1z,p2z,p3z,p4z],[1, 1, 1, 1]])
 T_t   = np.array([[1, 0, 0, Mi],[0,1,0,Ni],[0,0,1,Oi],[0,0,0,1]])
+
+####
+# Debugg take p2
+#
+# multiply the 4x4 with 1 control point and quantum vector
+#
+# Check that this point is correct with translation
+# 
+# Print before and after translation, to make sure 
+# that the translation is correct
+#
+#
+print('-----------------------')
+print(p_i)
 p_i = np.matmul(T_t,Pnt_0)
 print(p_i)
+print('-----------------------')
+pi1x = p_i[0,0]
+pi1y = p_i[1,0]
+pi1z = p_i[2,0]
+#
+pi2x = p_i[0,1]
+pi2y = p_i[1,1]
+pi2z = p_i[2,1]
+#
+#
+pi3x = p_i[0,2]
+pi3y = p_i[1,2]
+pi3z = p_i[2,2]
+#
+#
+pi4x = p_i[0,3]
+pi4y = p_i[1,3]
+pi4z = p_i[2,3]
+
+
+
 ######
 
 

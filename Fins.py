@@ -7,10 +7,6 @@ w = sp.symbols('w')
 ### basic Fin Calculations
 R = int(input("Enter the radius of the Main Envelope:")) # max radius of the envelope (SET FORM OTHER PARAMETERS)
 
-lines = 20
-
-
-
 h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
 
 # sanity check "h" inputs
@@ -41,6 +37,7 @@ def Ro_x(theta, Px, Py, Pz): # rotation of a point around the x-axis
 ### Create NACA 0012 airfoil points/spline
 
 def build_fin(h, b, t, offset, theta_deg): # args are height, base, tip, and offset
+    lines = 10 # number of lines for the surface plot
     # Create points for the surface path of the initial fin construction
     # four points for the corners of the fin
     P0 = np.array([0, 0, 0]) # origin
@@ -258,6 +255,24 @@ ribs_mirrored_x = fin_lines[9]
 ribs_mirrored_y = fin_lines[10]
 ribs_mirrored_z = fin_lines[11]                   
 
+theta_deg2 = 135
+
+fin_lines2 = np.zeros(12)
+fin_lines2 = build_fin(h, b, t, offset, theta_deg2) # build the fin with the given parameters
+
+Surface_values_x2 = fin_lines2[0]
+Surface_values_y2 = fin_lines2[1]
+Surface_values_z2 = fin_lines2[2]
+ribs_x2 = fin_lines2[3]
+ribs_y2 = fin_lines2[4]
+ribs_z2 = fin_lines2[5]
+S_surface_values_mirrored_x2 = fin_lines2[6]
+S_surface_values_mirrored_y2 = fin_lines2[7]
+S_surface_values_mirrored_z2 = fin_lines2[8]
+ribs_mirrored_x2 = fin_lines2[9]
+ribs_mirrored_y2 = fin_lines2[10]
+ribs_mirrored_z2 = fin_lines2[11]
+
 ### Create a 3D plot
 
 plt.xlabel('X-axis')
@@ -288,6 +303,10 @@ for i in range(len(fin_lines[0])):
     plt.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], label='Ribs') # ribs of the airfoil fin
     plt.plot(S_surface_values_mirrored_x[i,:], S_surface_values_mirrored_y[i,:], S_surface_values_mirrored_z[i,:], label='S(u,w)') # spanwise lines
     plt.plot(ribs_mirrored_x[i,:], ribs_mirrored_y[i,:], ribs_mirrored_z[i,:], label='Ribs') # ribs of the airfoil fin
+    plt.plot(Surface_values_x2[i,:], Surface_values_y2[i,:], Surface_values_z2[i,:], label='S(u,w) fin2') # spanwise lines for fin2
+    plt.plot(ribs_x2[i,:], ribs_y2[i,:], ribs_z2[i,:], label='Ribs fin2') # ribs of the airfoil fin2
+    plt.plot(S_surface_values_mirrored_x2[i,:], S_surface_values_mirrored_y2[i,:], S_surface_values_mirrored_z2[i,:], label='S(u,w) fin2 mirrored') # spanwise lines for fin2 mirrored
+    plt.plot(ribs_mirrored_x2[i,:], ribs_mirrored_y2[i,:], ribs_mirrored_z2[i,:], label='Ribs fin2 mirrored') # ribs of the airfoil fin2 mirrored
 
 # Add a legend for clarity
 ax.legend(bbox_to_anchor = (1.1, 0.1))

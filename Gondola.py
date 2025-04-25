@@ -20,67 +20,75 @@ def draw_gondola(main_window, length, width, height,
                   nose_sharp=2.0, tail_sharp=2.0, plateau_scale=1.0):
     """
     Draws the gondola by revolving a 2D Bezier profile around the X-axis.
-    - nose_sharp, tail_sharp >1 make the ends sharper (more pointed).
-    - plateau_scale between 0–1 scales the midsection height.
+    - length: longitudinal extent
+    - width: lateral (max diameter)
+    - height: vertical profile height
+    - nose_sharp, tail_sharp >1 make the ends sharper
+    - plateau_scale between 0–1 scales midsection
     """
-    # adjust fractions for cigar and diamond shapes
-    r_frac = nose_sharp / (nose_sharp + 1.0) * 0.2  # keep nose region small
-    t_frac = 1.0 - (tail_sharp / (tail_sharp + 1.0) * 0.2)
-    p = plateau_scale  # midsection height fraction
+    # define fractions along length
+    r_frac = 0.2 * (nose_sharp / (nose_sharp + 1.0))
+    t_frac = 1.0 - 0.2 * (tail_sharp / (tail_sharp + 1.0))
+    p = plateau_scale
 
-    # Construct control polygon for smoother rounded ends
+    # control points [x,z]
     ctrl = np.array([
-        [0.0,              0.0       ],  # nose tip
-        [r_frac * length,  p * height],  # nose shoulder
-        [0.5 * length,     p * height],  # mid plateau
-        [t_frac * length,  p * height],  # rear shoulder
-        [length,           0.0       ]   # tail tip
-    ], dtype=float)
+        [0.0,          0.0       ],  # nose tip
+        [r_frac*length, p*height ],  # nose shoulder
+        [0.5*length,    p*height ],  # mid plateau
+        [t_frac*length, p*height ],  # tail shoulder
+        [length,       0.0       ]   # tail tip
+    ])
 
-    # sample 2D profile
+    # sample profile
     profile = bezier_curve(ctrl, num_points=150)
-    X2d = profile[:, 0]
-    Z2d = profile[:, 1]
-    N = len(X2d)
+    X2d = profile[:,0]
+    Z2d = profile[:,1]
 
-    # revolve around X-axis
-    M = 60
-    angles = np.linspace(0, 2 * pi, M)
+    # revolve
     verts = []
-    for i in range(N - 1):
-        for j in range(M - 1):
-            # radii scaled to width
-            r0 = (Z2d[i] / height) * (width / 2.0)
-            r1 = (Z2d[i+1] / height) * (width / 2.0)
+    angles = np.linspace(0, 2*pi, 60)
+    for i in range(len(X2d)-1):
+        for j in range(len(angles)-1):
+            # radius scales to width
+            r0 = (Z2d[i]/height)*(width/2.0)
+            r1 = (Z2d[i+1]/height)*(width/2.0)
             x0, x1 = X2d[i], X2d[i+1]
             w0, w1 = angles[j], angles[j+1]
             verts.append([
-                [x0, r0 * cos(w0),  r0 * sin(w0)],
-                [x1, r1 * cos(w0),  r1 * sin(w0)],
-                [x1, r1 * cos(w1),  r1 * sin(w1)],
-                [x0, r0 * cos(w1),  r0 * sin(w1)]
+                [x0, r0*cos(w0),  r0*sin(w0)],
+                [x1, r1*cos(w0),  r1*sin(w0)],
+                [x1, r1*cos(w1),  r1*sin(w1)],
+                [x0, r0*cos(w1),  r0*sin(w1)]
             ])
 
-    # align under envelope lowest point
+    # alignment: keep top of gondola at envelope low point
     lp = np.atleast_1d(main_window.low_pnt)[0]
     base_x, base_y, base_z = lp
+    # vertical translation so profile height matches envelope
     for quad in verts:
         for v in quad:
-            v[0] += base_x - length / 2.0
+            v[0] += base_x - length/2.0
             v[1] += base_y
-            v[2] += base_z - (width / 2.0)
+            v[2] += base_z  # keep top center fixed
 
     # render
     ax = main_window.plot_canvas.axis
-    poly = Poly3DCollection(verts, facecolor='gray', alpha=0.8, linewidths=0.05)
+    poly = Poly3DCollection(verts, facecolor='gray', alpha=0.8, linewidths=0.02)
     ax.add_collection3d(poly)
+<<<<<<< HEAD
     ax.set_xlim(base_x - length/2, base_x + length/2)
     ax.set_ylim(base_y - width/2,  base_y + width/2)
     ax.set_zlim(base_z - width/2,  base_z + width/2)
     ### 
     # add in aspect - Evan 
     main_window.plot_canvas.axis.set_aspect('equal', 'box')
+=======
+    ax.set_xlim(base_x-length/2, base_x+length/2)
+    ax.set_ylim(base_y-width/2,  base_y+width/2)
+    ax.set_zlim(base_z,           base_z+height)
+>>>>>>> 0e8aa1b (set center of gondola to low point of envelope)
     main_window.plot_canvas.draw()
 
-    vertices = np.array(verts).reshape(-1, 3)
-    return vertices, verts
+    verts_arr = np.array(verts).reshape(-1,3)
+    return verts_arr, verts

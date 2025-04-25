@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         self.E_len_label = QLabel("Length: (m)")
         self.E_len = QLineEdit("175")
         self.E_rad_label = QLabel("Radius: (m)")
-        self.E_rad = QLineEdit("3")
+        self.E_rad = QLineEdit("50")
         self.E_per_label = QLabel("Nose-Length: (m)")
         self.E_per = QLineEdit("45")
         

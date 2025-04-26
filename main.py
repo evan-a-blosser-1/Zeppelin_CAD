@@ -362,9 +362,15 @@ class MainWindow(QMainWindow):
             D = float(self.fin_dis.text())   ## distance from nose
             N = int(self.fin_num.text())     ## number of fins
             
-            # TODO: Add funciton
-            fin1 = np.zeros(12)
-            fin1 = build_fin(self, H, L, W, D, 0)
+            angle_start = 90
+            angle_advance = 360 / N
+
+            fin = np.zeros((N, 12))
+            for i in range(N):
+                angle = angle_start + angle_advance*i
+                if angle > 360:
+                    angle = angle - 360
+                fin = build_fin(self, H, L, W, D, angle)
             
             self.logback.append(f"Drawing fins with:")
 

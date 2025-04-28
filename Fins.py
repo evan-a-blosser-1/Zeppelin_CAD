@@ -72,7 +72,7 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
 
     U_matrix = np.array([[u**2, u, 1]])
     N_s = np.array([[2,-4,2],[-3,4,-1],[1,0,0]])
-    B_airfoil_s = np.matmul(U_matrix, N_s) # B-spline matrix for the airfoil points
+    B_airfoil_s = np.matmul(U_matrix, N_s) # quadratic spline matrix for the airfoil points
     P_airfoil_s = np.matmul(B_airfoil_s, P_airfoil_rotate_offset)
 
     # print('B_airfoil_s: ',B_airfoil_s,'\n','P_airfoil_s: ',P_airfoil_s)
@@ -98,12 +98,12 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
     P_airfoil_tip = np.matmul(Scale_matrix,P_airfoil_scale)  # scale the airfoil points
     #print('P_airfoil_tip:\n', P_airfoil_tip)
 
-    ## Create points for the top airfoil by using the scaled and translated airfoil points
+    ## Create points for the tip airfoil by using the scaled and translated airfoil points
     P7 = np.array([P_airfoil_tip[0,0], P_airfoil_tip[1,0], P_airfoil_tip[2,0]]) # leading edge of the airfoil
     P8 = np.array([P_airfoil_tip[0,1], P_airfoil_tip[1,1], P_airfoil_tip[2,1]]) # max camber of the airfoil
     P9 = np.array([P_airfoil_tip[0,2], P_airfoil_tip[1,2], P_airfoil_tip[2,2]]) # trailing edge of the airfoil
 
-    P_airfoil_tip = np.array([P7, P8, P9]) # top airfoil points
+    P_airfoil_tip = np.array([P7, P8, P9]) # tip airfoil points
 
     #move the airfoil points to the correct position down the envelope
     P7_offset = np.array([P7[0]+offset, P7[1], P7[2]]) 
@@ -117,9 +117,9 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
     P8_rotate = Ro_x(np.deg2rad(theta_deg), P8_offset[0], P8_offset[1], P8_offset[2])
     P9_rotate = Ro_x(np.deg2rad(theta_deg), P9_offset[0], P9_offset[1], P9_offset[2])
 
-    P_airfoil_tip_rotate_offset = np.array([P7_rotate, P8_rotate, P9_rotate]) # top airfoil points with offset and rotation
+    P_airfoil_tip_rotate_offset = np.array([P7_rotate, P8_rotate, P9_rotate]) # tip airfoil points with offset and rotation
 
-    P_airfoil_tip_u = np.matmul(B_airfoil_s, P_airfoil_tip_rotate_offset) # quadratic Parametric equation for the airfoil tip points
+    P_airfoil_tip_u = np.matmul(B_airfoil_s, P_airfoil_tip_rotate_offset) # quadratic spline Parametric equation for the airfoil tip points
 
     ## fin tip airfoil converstion from P_u
     foiltip_x = sp.lambdify(u, P_airfoil_tip_u[0,0], modules='numpy')
@@ -132,7 +132,7 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
 
     #print('P_airfoil_tip_u: ',P_airfoil_tip_u)
 
-    #### Surface plot of the fin
+    #### Surface plot of the top of fin
 
     S_uw_airfoil = (1-w)*P_airfoil_s + w*P_airfoil_tip_u # surface of the fin
 
@@ -187,8 +187,8 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
     P_mirror_tip_rotate_offset = np.array([P7_rotate, P11_final_rotate, P9_rotate]) # mirrored tip airfoil points with offset and rotation
 
     # parametric lines for base and tip mirrored airfoil curve
-    P_mirror_base_u = np.matmul(B_airfoil_s, P_mirror_base_rotate_offset) # B-spline matrix for the mirrored base airfoil points
-    P_mirror_tip_u = np.matmul(B_airfoil_s, P_mirror_tip_rotate_offset) # B-spline matrix for the mirrored tip airfoil points
+    P_mirror_base_u = np.matmul(B_airfoil_s, P_mirror_base_rotate_offset) # quadratic spline matrix for the mirrored base airfoil points
+    P_mirror_tip_u = np.matmul(B_airfoil_s, P_mirror_tip_rotate_offset) # quadratic spline matrix for the mirrored tip airfoil points
 
     # print('P_mirror_base_u: ',P_mirror_base_u,'\n','P_mirror_tip_u: ',P_mirror_tip_u)
 
@@ -210,7 +210,7 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
 
     # bottom surface construction
 
-    S_uw_airfoil_mirrored = (1-w)*P_mirror_base_u + w*P_mirror_tip_u # surface of the fin
+    S_uw_airfoil_mirrored = (1-w)*P_mirror_base_u + w*P_mirror_tip_u # bottom surface of the fin
 
     #print('S_uw_airfoil: ',S_uw_airfoil)
 

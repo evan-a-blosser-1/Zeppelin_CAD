@@ -6,7 +6,7 @@ import sympy as sp
 
 
 L  = 50
-R  = 0.5
+R  = 25.25
 D1 = 11
 D2 = L - D1*1.5
 ######
@@ -36,7 +36,10 @@ Ni = 0
 Oi = 0
 ######
 Pnt_0 = np.array([[p1x,p2x,p3x,p4x],[p1y,p2y,p3y,p4y],[p1z,p2z,p3z,p4z],[1, 1, 1, 1]])
-T_t   = np.array([[1, 0, 0, Mi],[0,1,0,Ni],[0,0,1,Oi],[0,0,0,1]])
+T_t   = np.array([[1, 0, 0, Mi],
+                  [0,1,0,Ni],
+                  [0,0,1,Oi],
+                  [0,0,0,1]])
 
 ####
 # Debugg take p2
@@ -52,7 +55,8 @@ T_t   = np.array([[1, 0, 0, Mi],[0,1,0,Ni],[0,0,1,Oi],[0,0,0,1]])
 print('-----------------------')
 print(p_i)
 p_i = np.matmul(T_t,Pnt_0)
-print(p_i[0,0])
+print(p_i)
+print(p_i[0,1])
 print('-----------------------')
 pi1x = p_i[0,0]
 pi1y = p_i[1,0]
@@ -75,7 +79,11 @@ pi4x = p_i[0,3]
 pi4y = p_i[1,3]
 pi4z = p_i[2,3]
 print(pi4x,pi4y,pi4z)
-
+#####
+p_i = np.array([[pi1x,pi1y,pi1z],
+                [pi2x,pi2y,pi2z],
+                [pi3x,pi3y,pi3z],
+                [pi4x,pi4y,pi4z]])
 
 
 ######
@@ -112,9 +120,15 @@ print(X_val.shape)
 print(Y_val.shape)
 print(Z_val.shape)
 #############
-Px = X_val
-Py = Z_val*np.cos(W)
-Pz = Z_val*np.sin(W)
+# Revole 
+# 
+X_offset = 100
+Y_offset = 50  
+Z_offset = 2 
+
+Px = X_val + X_offset
+Py = Z_val*np.cos(W) + Y_offset
+Pz = Z_val*np.sin(W) + Z_offset 
 print(Px.shape)
 print(Py.shape)
 print(Pz.shape)
@@ -129,8 +143,10 @@ mesh = Poly3DCollection(vertices[triangles.triangles])
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.add_collection3d(mesh)
+# ax.add_collection3d(mesh)
 ax.plot_wireframe(Px, Py, Pz, color='black', alpha=0.5)
+ax.plot_wireframe(Px, -Py, Pz, color='black', alpha=0.5)
+
 # ax.plot(X_val, Y_val, Z_val, label='B-spline curve')
 # ax.plot_surface(Px, Py, Pz, alpha=0.5, color='blue')
 

@@ -14,7 +14,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
 sys.dont_write_bytecode = True
-from config import clear_plot, save_as_stl
+from config import clear_plot, save_as_stl, merge_wireframes
 from Envelope import draw_envelope
 from Engine import draw_engine
 from Gondola import draw_gondola
@@ -39,12 +39,17 @@ class MainWindow(QMainWindow):
         self.low_pnt = None
         self.env_tri = None
         self.env_verts = None
+        self.env_wf = None
         self.gond_tri = None
         self.gond_verts = None
+        self.gond_wf = None
         self.eng_tri = None
         self.eng_verts = None
+        self.eng_wf1 = None
+        self.eng_wf2 = None
         self.fin_tri = None
         self.fin_verts = None
+        self.fin_wf = None
         self.combined_tri = None
         # Create main central widget and layout
         main_widget = QWidget()
@@ -182,13 +187,13 @@ class MainWindow(QMainWindow):
         # Fins
         fin_grid = QGridLayout()
         self.fin_label = QLabel("Fin Base: (m)")
-        self.fin_len = QLineEdit("3")
+        self.fin_len = QLineEdit("60")
         self.fin_wid_label = QLabel("Fin Tip: (m)")
-        self.fin_wid = QLineEdit("1")
+        self.fin_wid = QLineEdit("25")
         self.fin_height_label = QLabel("Fin Height: (m)")
-        self.fin_height = QLineEdit("1")
+        self.fin_height = QLineEdit("25")
         self.fin_dis_label = QLabel("Distance From Nose: (m)")
-        self.fin_dis = QLineEdit("50")
+        self.fin_dis = QLineEdit("125")
         # 
         self.fin_num_label = QLabel("Number of Fins:")
         self.fin_num = QLineEdit("4")
@@ -251,9 +256,9 @@ class MainWindow(QMainWindow):
         # bottom_panel_layout.addWidget(self.save_stl_button)
         #################################################
         # Merge button
-        # self.merge_button = QPushButton("Merge All Meshes")
-        # self.merge_button.clicked.connect(lambda: merge_meshes(self))
-        # bottom_panel_layout.addWidget(self.merge_button)
+        self.merge_button = QPushButton("Merge All Meshes")
+        self.merge_button.clicked.connect(lambda: merge_wireframes(self))
+        bottom_panel_layout.addWidget(self.merge_button)
         
         
         # Add log output window
@@ -337,7 +342,7 @@ class MainWindow(QMainWindow):
             # z = np.zeros_like(x)
             # self.axis.plot(x, y, z)
             
-            self.low_pnt, self.env_tri, self.env_verts = draw_envelope(self,L,R,D1)
+            self.low_pnt, self.env_tri, self.env_verts, self.env_wf = draw_envelope(self,L,R,D1)
             
             
             self.plot_canvas.draw()
@@ -378,6 +383,9 @@ class MainWindow(QMainWindow):
             self.logback.append(f"Gondola error: {e}")
 
 
+
+
+
     def draw_engine(self):
         if self.low_pnt is None:
             QMessageBox.warning(self, "Engine Error", "Please draw the envelope first")
@@ -411,7 +419,7 @@ class MainWindow(QMainWindow):
         
         #########
         try:
-            draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
+            self.eng_wf1, self.eng_wf2 = draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
             self.logback.append(f"Drawing engine...")
             
             
@@ -419,6 +427,9 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Engine Error", str(e))
             self.logback.append(f"Engine error: {e}")
             
+
+
+
 
 
 

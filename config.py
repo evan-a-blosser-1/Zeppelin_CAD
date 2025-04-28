@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib
 from PySide6.QtWidgets import QMessageBox  
 from PySide6 import QtWidgets
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -13,78 +14,110 @@ def clear_plot(main_window):
     main_window.plot_canvas.draw()
     
 
-# def merge_meshes(main_window):
-#     # List to store valid vertices and triangles
-#     mesh_data = []
-    
-#     # Check and add each component's vertices and triangles if they exist
-#     if main_window.env_tri is not None:
-#         mesh_data.append((main_window.env_verts, main_window.env_tri))
-#     if main_window.gond_tri is not None:
-#         mesh_data.append((main_window.gond_verts, main_window.gond_tri))
-#     if main_window.eng_tri is not None:
-#         mesh_data.append((main_window.eng_verts, main_window.eng_tri))
-#     if main_window.fin_tri is not None:
-#         mesh_data.append((main_window.fin_verts, main_window.fin_tri))
+def merge_wireframes(self):
+    """Merge all component wireframes stored as dictionaries"""
+    if self.env_wf is None:
+        QMessageBox.warning(self, "Merge Error", "Please draw the envelope first")
+        return
+
+    try:
+        # Initialize arrays to store combined coordinates
+        Px_combined = self.env_wf['Px']
+        Py_combined = self.env_wf['Py']
+        Pz_combined = self.env_wf['Pz']
         
-#     if not mesh_data:
-#         main_window.logback.append("No meshes to merge!")
-#         return
+        # Add other wireframes if they exist
+        if self.gond_wf is not None:
+            Px_combined = np.concatenate([Px_combined, self.gond_wf['Px']])
+            Py_combined = np.concatenate([Py_combined, self.gond_wf['Py']])
+            Pz_combined = np.concatenate([Pz_combined, self.gond_wf['Pz']])
+            
+        if self.eng_wf1 is not None:
+            Px_combined = np.concatenate([Px_combined, self.eng_wf1['Px']])
+            Py_combined = np.concatenate([Py_combined, self.eng_wf1['Py']])
+            Pz_combined = np.concatenate([Pz_combined, self.eng_wf1['Pz']])
+            
+        if self.eng_wf2 is not None:
+            Px_combined = np.concatenate([Px_combined, self.eng_wf2['Px']])
+            Py_combined = np.concatenate([Py_combined, self.eng_wf2['Py']])
+            Pz_combined = np.concatenate([Pz_combined, self.eng_wf2['Pz']])
+            
+        if self.fin_wf is not None:
+            Px_combined = np.concatenate([Px_combined, self.fin_wf['Px']])
+            Py_combined = np.concatenate([Py_combined, self.fin_wf['Py']])
+            Pz_combined = np.concatenate([Pz_combined, self.fin_wf['Pz']])
+            
+            
+        # Get envelope parameters
+        L = float(self.E_len.text())
+        R = float(self.E_rad.text())
+        D1 = float(self.E_per.text())
+        
+        # Calculate radial distance for each point
+        r = np.sqrt(Py_combined**2 + Pz_combined**2)
+        x = Px_combined
+        
+        # Create masks for each section
+        nose_mask = (x <= D1) & (r < R * (x/D1))
+        tail_mask = (x >= (L-D1)) & (r < R * ((L-x)/D1))
+        body_mask = (x > D1) & (x < (L-D1)) & (r < R)
+        
+        # Combine masks - True means point is inside
+        interior_mask = nose_mask | tail_mask | body_mask
+        
+        # Invert mask to keep exterior points
+        exterior_mask = ~interior_mask
+        
+        # Apply mask to keep only exterior points
+        Px_filtered = Px_combined[exterior_mask]
+        Py_filtered = Py_combined[exterior_mask]
+        Pz_filtered = Pz_combined[exterior_mask]
 
+        # Store filtered wireframe as dictionary
+        self.combined_wf = {
+            'Px': Px_filtered,
+            'Py': Py_filtered,
+            'Pz': Pz_filtered,
+            'color': 'blue',
+            'alpha': 0.5
+        }
 
-#     # Combine meshes
-#     all_vertices = []
-#     all_triangles = []
-#     vertex_offset = 0
-    
-#     for vertices, triangles in mesh_data:
-#         all_vertices.append(vertices)
-#         # Get triangle indices and adjust with offset
-#         tri_indices = triangles.triangles  # Access the triangle indices
-#         current_triangles = tri_indices + vertex_offset
-#         all_triangles.append(triangles.triangles)
-#         vertex_offset += len(vertices)
-    
-#     # Combine all vertices and triangles
-#     combined_vertices = np.vstack(all_vertices)
-#     combined_triangles = np.vstack(all_triangles)
-    
-#     # Create final mesh
-#     main_window.combined_mesh = Poly3DCollection(combined_vertices[combined_triangles])
-    
-#     # Clear plot and add combined mesh
-#     clear_plot(main_window)
-#     main_window.plot_canvas.axis.add_collection3d(main_window.combined_mesh)
-#     main_window.plot_canvas.draw()
-#     main_window.logback.append("Meshes merged successfully!")
+        # Update plot
+        self.plot_canvas.axis.clear()
+        self.plot_canvas.axis.plot_wireframe(Px_combined, Py_combined, Pz_combined, 
+                               color=self.combined_wf['color'],
+                               alpha=self.combined_wf['alpha'])
+        self.plot_canvas.axis.set_xlabel('X')
+        self.plot_canvas.axis.set_ylabel('Y')
+        self.plot_canvas.axis.set_zlabel('Z')
+        self.plot_canvas.draw()
+        
+        self.logback.append("Wireframes merged successfully")
+        
+    except Exception as e:
+        self.logback.append(f"Error merging wireframes: {str(e)}")
+        QMessageBox.critical(self, "Merge Error", str(e))
+        
+        
 
 def save_as_stl(self):
     try:
-        # Combine all vertices and faces from wireframes
-        combined_vertices = []
-        combined_faces = []
-        vertex_offset = 0
-        
-        # Add envelope mesh if it exists
-        if hasattr(self, 'env_verts') and self.env_verts is not None:
-            combined_vertices.extend(self.env_verts)
-            if hasattr(self, 'env_tri') and self.env_tri is not None:
-                # Convert triangulation to array and add offset
-                tri_array = np.array(self.env_tri.triangles)
-                combined_faces.extend(tri_array + vertex_offset)
-            vertex_offset += len(self.env_verts)
-        
-        # Add gondola mesh if it exists
-        if hasattr(self, 'gond_verts') and self.gond_verts is not None:
-            combined_vertices.extend(self.gond_verts)
-            if hasattr(self, 'gond_tri') and self.gond_tri is not None:
-                tri_array = np.array(self.gond_tri.triangles)
-                combined_faces.extend(tri_array + vertex_offset)
-            vertex_offset += len(self.gond_verts)
+        # Combine all wireframe meshes
+        if not hasattr(self, 'wfrm'):
+            QMessageBox.warning(self, "STL Export Error", "No wireframe data available")
+            return
             
-        # Convert to numpy arrays
-        vertices = np.array(combined_vertices)
-        faces = np.array(combined_faces)
+        # Get points from wireframe
+        Px = self.wfrm['Px'].flatten()
+        Py = self.wfrm['Py'].flatten()
+        Pz = self.wfrm['Pz'].flatten()
+        
+        # Combine into vertices array
+        vertices = np.vstack((Px, Py, Pz)).T
+        
+        # Create triangulation from points
+        tri = matplotlib.tri.Triangulation(vertices[:,0], vertices[:,1])
+        faces = tri.triangles
         
         # Create mesh data
         mesh_data = stl.mesh.Mesh(np.zeros(len(faces), dtype=stl.mesh.Mesh.dtype))

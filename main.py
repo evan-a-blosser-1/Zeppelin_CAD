@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
         self.eng_d1_label = QLabel("Engine Taper: (m)")
         self.eng_d1 = QLineEdit("11")
         self.eng_Posx_label = QLabel("X-location from midpoint to back: (%)")
-        self.eng_Posx = QLineEdit("0.25")
+        self.eng_Posx = QLineEdit("25")
 
         eng_grid.addWidget(self.eng_length_label, 0, 0)
         eng_grid.addWidget(self.eng_length, 0, 1)
@@ -196,7 +196,7 @@ class MainWindow(QMainWindow):
         self.fin_dis = QLineEdit("125")
         # 
         self.fin_num_label = QLabel("Number of Fins:")
-        self.fin_num = QLineEdit("4")
+        self.fin_num = QLineEdit("5")
         
         fin_grid.addWidget(self.fin_label, 0, 0)
         fin_grid.addWidget(self.fin_len, 0, 1)
@@ -329,9 +329,9 @@ class MainWindow(QMainWindow):
                 raise ValueError("Nose length too long")
             ####
             # Nose ratio
-            if D1/L < 45/175:
-                env_err_message = "Nose length too short for envelope length"
-                raise ValueError("Nose length too short")
+            # if D1/L < 45/175:
+            #     env_err_message = "Nose length too short for envelope length"
+            #     raise ValueError("Nose length too short")
             
             #############################################
             self.logback.append(f"Drawing envelope with:")
@@ -393,7 +393,7 @@ class MainWindow(QMainWindow):
         ######
         # Engine position
         L_env = float(self.E_len.text())
-        Per_Bck = float(self.eng_Posx.text())
+        Per_Bck = float((self.eng_Posx.text())) / 100 # Convert to percentage
         if Per_Bck > 0.3:
             eng_err_message = "Engine position too far back"
             self.logback.append(f"Error: {eng_err_message}")

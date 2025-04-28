@@ -94,68 +94,121 @@ def draw_gondola(main_window, length, width, height,
 # -----------------------
 # Gondola Function
 # -----------------------
+# gondola.py
 
-# Bézier Curve Function
+import numpy as np
+import matplotlib.pyplot as plt
+from math import comb, cos, sin, pi
+
+# ----------------------------- 0. Your original Bézier loft body -----------------------------
 def bezier_curve(control_points, num_points=150):
-    """
-    Generate a Bézier curve using textbook Bernstein polynomials.
-    """
     m = len(control_points)
-    n = m - 1  # Degree of the Bézier curve
+    n = m - 1
     u = np.linspace(0.0, 1.0, num_points)
     B = np.zeros((num_points, m), dtype=float)
     for i in range(m):
-        B[:, i] = comb(n, i) * (u ** i) * ((1 - u) ** (n - i))
-    curve = B @ np.array(control_points)
-    return curve  # (num_points, 2) array [x,z]
+        B[:, i] = comb(n, i) * (u**i) * ((1 - u)**(n - i))
+    return B @ np.array(control_points)
 
-# Gondola Loft Function
-def create_gondola_profile(length, width, height, base_x=0.0):
-    """
-    Create control points for a symmetric gondola Bézier curve.
-    """
-    # Set fraction distances along X
-    side_frac = 0.25  # how far from center the sides start to dip
-
-    ctrl_pts = np.array([
-        [base_x - length/2,  0.0],                            # Start: left edge touching envelope
-        [base_x - side_frac*length, -height],                # Control: left side dipping
-        [base_x,              -height],                      # Center: deepest point
-        [base_x + side_frac*length, -height],                # Control: right side dipping
-        [base_x + length/2,  0.0]                             # End: right edge touching envelope
+def draw_gondola_body(length, width, height):
+    # front and rear Bézier control nets in 3D:
+    r_frac = 0.2
+    t_frac = 0.8
+    ctrl_front = np.array([
+        [0.0,           -width/2,  0.0],
+        [0.0,           -width*r_frac, -height],
+        [0.0,            0.0,      -height],
+        [0.0,            width*r_frac, -height],
+        [0.0,            width/2,   0.0]
     ])
-    
-    profile_curve = bezier_curve(ctrl_pts, num_points=150)
-    
-    return profile_curve, ctrl_pts
+    ctrl_rear = ctrl_front.copy()
+    ctrl_rear[:,0] += length
 
-# -----------------------
-# Lofting between two curves
-# -----------------------
+    front_curve = bezier_curve(ctrl_front)
+    rear_curve  = bezier_curve(ctrl_rear)
+    return front_curve, rear_curve
 
-def create_rear_curve(front_ctrl_pts, shift_distance):
-    """
-    Shift the front control points backward along the X-axis
-    to create the rear curve control points.
-    """
-    rear_ctrl_pts = front_ctrl_pts.copy()
-    rear_ctrl_pts[:,0] -= shift_distance  # Shift backward in X
-    return rear_ctrl_pts
+def loft_gondola(front_curve, rear_curve, num_slices=30):
+    us = np.linspace(0,1,num_slices)
+    slices = []
+    for u in us:
+        slices.append((1-u)*front_curve + u*rear_curve)
+    return np.stack(slices)
 
-def loft_between_curves(front_curve, rear_curve, num_sections=20):
+# ----------------------------- 1. Quarter-circle cap profile -----------------------------
+def create_cap_profile(length_cap, radius_max, num_points=30):
     """
-    Create a lofted surface between two curves using linear interpolation (textbook Section 2.4.3).
-    front_curve: (N, 2) array [x, z]
-    rear_curve: (N, 2) array [x, z]
-    Returns: surface (num_sections, N, 2)
+    Returns (num_points,2) of [x, r] from (length_cap,0) to (0,radius_max)
     """
-    w_vals = np.linspace(0,1,num_sections)  # Loft interpolation parameter w
-    surface = []
-    for w in w_vals:
-        loft_slice = (1-w)*front_curve + w*rear_curve
-        surface.append(loft_slice)
-    return np.array(surface)  # Shape: (num_sections, num_points_on_curve, 2)
+    t = np.linspace(0, np.pi/2, num_points)
+    x = length_cap * np.cos(t)
+    r = radius_max  * np.sin(t)
+    return np.column_stack((x, r))
 
+# ----------------------------- 2. Loft that profile into a single point -----------------------------
+def loft_cap(profile, center_x, num_slices=20):
+    """
+    profile: (N,2) [x,r] in X–r plane
+    center_x: the X where the single point lives
+    returns: (num_slices, N, 3) slices of [X,Y,Z]
+    """
+    us = np.linspace(0,1,num_slices)
+    theta = np.linspace(0,2*np.pi, profile.shape[0])
+    slices = []
+    # precompute profile sampling positions
+    base_u = np.linspace(0,1, profile.shape[0])
+    for u in us:
+        # get one ring coords
+        x_ring = np.interp(u, base_u, profile[:,0]) + center_x
+        r_ring = np.interp(u, base_u, profile[:,1])
+        # full circle
+        Ys = r_ring * np.cos(theta)
+        Zs = r_ring * np.sin(theta)
+        Xs = np.full_like(theta, x_ring)
+        # now linearly loft toward the single point (center_x,0,0)
+        lam = 1-u
+        Xs = lam*Xs + (1-lam)*center_x
+        Ys = lam*Ys
+        Zs = lam*Zs
+        slices.append(np.column_stack((Xs,Ys,Zs)))
+    return np.stack(slices)
+
+# ----------------------------- 3. Main test & plot -----------------------------
+if __name__=="__main__":
+    # parameters
+    L = 40.0
+    W = 15.0
+    H =  5.0
+    cap_len = 5.0
+    cap_rad = W/2
+
+    # build body
+    front, rear = draw_gondola_body(L,W,H)
+    body = loft_gondola(front, rear, num_slices=40)
+
+    # build caps
+    prof = create_cap_profile(cap_len, cap_rad, num_points=50)
+    nose = loft_cap(prof, center_x=-cap_len, num_slices=20)
+    tail = loft_cap(prof, center_x=   L, num_slices=20)
+
+    # plot
+    fig = plt.figure(figsize=(12,8))
+    ax  = fig.add_subplot(111, projection='3d')
+
+    # body slices
+    for s in body:
+        ax.plot(s[:,0], s[:,1], s[:,2], color='gray', alpha=0.6)
+    # nose
+    for s in nose:
+        ax.plot(s[:,0], s[:,1], s[:,2], color='green')
+    # tail
+    for s in tail:
+        ax.plot(s[:,0], s[:,1], s[:,2], color='red')
+
+    ax.set_box_aspect([L+2*cap_len, W, W])
+    ax.set_xlabel("X"); ax.set_ylabel("Y"); ax.set_zlabel("Z")
+    ax.set_title("Lofted Gondola Body + Bézier Caps (no revolve)")
+    plt.show()
 
 
 

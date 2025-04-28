@@ -394,11 +394,12 @@ class MainWindow(QMainWindow):
         # Engine position
         L_env = float(self.E_len.text())
         Per_Bck = float((self.eng_Posx.text())) / 100 # Convert to percentage
-        if Per_Bck > 0.3:
+        if Per_Bck > 0.85:
             eng_err_message = "Engine position too far back"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine position too far back")
         ####
-        Pos_x = L_env * (1/2) + L_env * Per_Bck
+        Pos_x =  L_env * Per_Bck
         Pos_y = float(self.E_rad.text())
         ################################
         # Engine dimensions
@@ -409,12 +410,15 @@ class MainWindow(QMainWindow):
         if L_eng > 50:
             eng_err_message = "Engine length too long"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine length too long")
         if R_eng > L_eng:
             eng_err_message = "Engine radius too long"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine radius too long")
         if D1_eng > L_eng * (1/2):
             eng_err_message = "Engine taper too long"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine taper too long")
         
         
         #########

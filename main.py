@@ -17,6 +17,7 @@ sys.dont_write_bytecode = True
 from config import clear_plot
 from Envelope import draw_envelope
 from Gondola import draw_gondola
+from Fins import build_fin, Ro_x    
 
 
 class PlotCanvas(FigureCanvas):
@@ -353,15 +354,23 @@ class MainWindow(QMainWindow):
             fin_err_message = "Please Build the Main Envelope First "
             self.logback.append(f"Error: {fin_err_message}")
             raise ValueError("Please Build the Main Envelope First ")
-        
+
         try:
-            L = float(self.fin_len.text())
-            W = float(self.fin_wid.text())
-            H = float(self.fin_height.text())
+            L = float(self.fin_len.text()) ## fin base
+            W = float(self.fin_wid.text())  ## fin tip
+            H = float(self.fin_height.text()) ## fin height
+            D = float(self.fin_dis.text())   ## distance from nose
+            N = int(self.fin_num.text())     ## number of fins
             
-            # TODO: Add funciton
-            
-            
+            angle_start = 90
+            angle_advance = 360 / N
+
+            fin = np.zeros((N, 12))
+            for i in range(N):
+                angle = angle_start + angle_advance*i
+                if angle > 360:
+                    angle = angle - 360
+                fin = build_fin(self, H, L, W, D, angle)
             
             self.logback.append(f"Drawing fins with:")
 

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import sympy as sp 
 
-def draw_engine(main_window, Posx, Posy):
+def draw_engine(main_window, Posx, Posy, L, R, D1):
     main_window.logback.append(f"Creating engine...")
     ######
     # Translation matrix, move down x-axis
@@ -15,9 +15,9 @@ def draw_engine(main_window, Posx, Posy):
     # Z_offset = 2 
     #######
     # Dimensions 
-    L  = 50
-    R  = 25.25
-    D1 = 11
+    #L  = 50
+    #R  = 25.25
+    #D1 = 11
     D2 = L - D1*1.5
     ######
     Pm  = np.array([0,0,0])
@@ -126,7 +126,7 @@ def draw_engine(main_window, Posx, Posy):
     # 
     Px = X_val 
     Py = Z_val*np.cos(W) + Y_offset
-    Pz = Z_val*np.sin(W) + Z_offset 
+    Pz = Z_val*np.sin(W) 
     print(Px.shape)
     print(Py.shape)
     print(Pz.shape)

@@ -14,7 +14,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
 sys.dont_write_bytecode = True
-from config import clear_plot
+from config import clear_plot, save_as_stl
 from Envelope import draw_envelope
 from Engine import draw_engine
 from Gondola import draw_gondola
@@ -153,12 +153,23 @@ class MainWindow(QMainWindow):
         ####################################
         # Engine
         eng_grid = QGridLayout()
+        self.eng_length_label = QLabel("Engine Length: (m)")
+        self.eng_length = QLineEdit("50")
+        self.eng_radius_label = QLabel("Engine Radius: (m)")
+        self.eng_radius = QLineEdit("25.25")
+        self.eng_d1_label = QLabel("Engine Taper: (m)")
+        self.eng_d1 = QLineEdit("11")
         self.eng_Posx_label = QLabel("X-location from midpoint to back: (%)")
         self.eng_Posx = QLineEdit("0.25")
 
-        
-        eng_grid.addWidget(self.eng_Posx_label, 0, 0)
-        eng_grid.addWidget(self.eng_Posx, 0, 1)
+        eng_grid.addWidget(self.eng_length_label, 0, 0)
+        eng_grid.addWidget(self.eng_length, 0, 1)
+        eng_grid.addWidget(self.eng_radius_label, 1, 0)
+        eng_grid.addWidget(self.eng_radius, 1, 1)
+        eng_grid.addWidget(self.eng_d1_label, 2, 0)
+        eng_grid.addWidget(self.eng_d1, 2, 1)
+        eng_grid.addWidget(self.eng_Posx_label, 3, 0)
+        eng_grid.addWidget(self.eng_Posx, 3, 1)
         
         self.draw_eng_button = QPushButton("Draw Engine")
         self.draw_eng_button.clicked.connect(self.draw_engine)
@@ -233,6 +244,11 @@ class MainWindow(QMainWindow):
         self.clear_button = QPushButton("Clear Plot")
         self.clear_button.clicked.connect(lambda: clear_plot(self))
         bottom_panel_layout.addWidget(self.clear_button)
+        
+        ###
+        # self.save_stl_button = QPushButton("Export STL")
+        # self.save_stl_button.clicked.connect(lambda: save_as_stl(self))  
+        # bottom_panel_layout.addWidget(self.save_stl_button)
         #################################################
         # Merge button
         # self.merge_button = QPushButton("Merge All Meshes")
@@ -378,9 +394,26 @@ class MainWindow(QMainWindow):
         Pos_y = float(self.E_rad.text())
         ################################
         # Engine dimensions
-
+        L_eng = float(self.eng_length.text())
+        R_eng = float(self.eng_radius.text())
+        D1_eng = float(self.eng_d1.text())
+        # TODO more idiot proofing! 
+        if L_eng > 50:
+            eng_err_message = "Engine length too long"
+            self.logback.append(f"Error: {eng_err_message}")
+        if R_eng > L_eng:
+            eng_err_message = "Engine radius too long"
+            self.logback.append(f"Error: {eng_err_message}")
+        if D1_eng > L_eng * (1/2):
+            eng_err_message = "Engine taper too long"
+            self.logback.append(f"Error: {eng_err_message}")
+        
+        
+        #########
         try:
-            draw_engine(self,Pos_x, Pos_y)
+            draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
+            self.logback.append(f"Drawing engine...")
+            
             
         except Exception as e:
             QMessageBox.critical(self, "Engine Error", str(e))

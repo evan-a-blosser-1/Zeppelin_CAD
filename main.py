@@ -16,6 +16,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 sys.dont_write_bytecode = True
 from config import clear_plot
 from Envelope import draw_envelope
+from Engine import draw_engine
 from Gondola import draw_gondola
 from Fins import build_fin, Ro_x    
 
@@ -151,8 +152,18 @@ class MainWindow(QMainWindow):
         
         ####################################
         # Engine
-        eng_layout.addWidget(QLabel("Grid Size:"))
-        eng_layout.addWidget(QLineEdit())
+        eng_grid = QGridLayout()
+        self.eng_Posx_label = QLabel("X-location from midpoint to back: (%)")
+        self.eng_Posx = QLineEdit("0.25")
+
+        
+        eng_grid.addWidget(self.eng_Posx_label, 0, 0)
+        eng_grid.addWidget(self.eng_Posx, 0, 1)
+        
+        self.draw_eng_button = QPushButton("Draw Engine")
+        self.draw_eng_button.clicked.connect(self.draw_engine)
+        eng_layout.addLayout(eng_grid)
+        eng_layout.addWidget(self.draw_eng_button)
         eng_layout.addStretch()
         
         
@@ -289,11 +300,17 @@ class MainWindow(QMainWindow):
             if L < 50:
                 env_err_message = "Length too short"
                 raise ValueError("Length too long")
-            if R > 50:
+            if R > 100:
+                env_err_message = "Radius too long"
                 raise ValueError("Radius too long")
             if D1 > L:
+                env_err_message = "Nose length too long"
                 raise ValueError("Nose length too long")
-            
+            ####
+            # Nose ratio
+            if D1/L < 45/175:
+                env_err_message = "Nose length too short for envelope length"
+                raise ValueError("Nose length too short")
             
             #############################################
             self.logback.append(f"Drawing envelope with:")
@@ -345,7 +362,30 @@ class MainWindow(QMainWindow):
             self.logback.append(f"Gondola error: {e}")
 
 
+    def draw_engine(self):
+        if self.low_pnt is None:
+            QMessageBox.warning(self, "Engine Error", "Please draw the envelope first")
+            return
+        ######
+        # Engine position
+        L_env = float(self.E_len.text())
+        Per_Bck = float(self.eng_Posx.text())
+        if Per_Bck > 0.3:
+            eng_err_message = "Engine position too far back"
+            self.logback.append(f"Error: {eng_err_message}")
+        ####
+        Pos_x = L_env * (1/2) + L_env * Per_Bck
+        Pos_y = float(self.E_rad.text())
+        ################################
+        # Engine dimensions
 
+        try:
+            draw_engine(self,Pos_x, Pos_y)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Engine Error", str(e))
+            self.logback.append(f"Engine error: {e}")
+            
 
 
 

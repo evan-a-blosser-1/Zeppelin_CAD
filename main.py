@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         # Gondola Tab Layout
         gond_layout = QVBoxLayout(gond_tab)
         gond_grid = QGridLayout()
-        self.gondola_len = QLineEdit("10"); self.gondola_wid = QLineEdit("3"); self.gondola_height = QLineEdit("3")
+        self.gondola_len = QLineEdit("50"); self.gondola_wid = QLineEdit("40"); self.gondola_height = QLineEdit("30")
         gond_grid.addWidget(QLabel("Length (m)"), 0,0); gond_grid.addWidget(self.gondola_len, 0,1)
         gond_grid.addWidget(QLabel("Width (m)"),  1,0); gond_grid.addWidget(self.gondola_wid, 1,1)
         gond_grid.addWidget(QLabel("Height (m)"), 2,0); gond_grid.addWidget(self.gondola_height,2,1)

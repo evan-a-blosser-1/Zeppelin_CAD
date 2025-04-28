@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Zeppelin CAD")
         self.setWindowState(Qt.WindowMaximized)
         ######################################
+        ######################################
         # Globals
         self.low_pnt = None
         self.env_tri = None
@@ -473,6 +474,21 @@ class MainWindow(QMainWindow):
 ###################################### 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    # app.setStyle("Macintosh")  
+    # app.setStyle("Fusion")  
+    # app.setStyle("Windows")  
+    # app.setStyle("GTK")  
+    # app.setStyle("WindowsVista")
+    # app.setStyle("Material") 
+    app.setStyle("Android")  
+    # app.setStyleSheet("""
+    #     QMainWindow { background-color: #f0f0f0; }
+    #     * { color: #000000; }  /* Black text for all widgets */
+    #     QLabel { color: #000080; }  /* Navy blue for labels */
+    #     QPushButton { color: #006400; }  /* Dark green for buttons */
+    # """)
+    app.setFont(QtGui.QFont("Times New Roman", 13))
+    #app.setPalette(app.style().standardPalette()) # Reset to standard light theme
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

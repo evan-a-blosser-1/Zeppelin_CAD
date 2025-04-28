@@ -419,7 +419,9 @@ class MainWindow(QMainWindow):
         
         #########
         try:
-            self.eng_wf1, self.eng_wf2 = draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
+            # self.eng_wf1, self.eng_wf2 = draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
+            draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
+            
             self.logback.append(f"Drawing engine...")
             
             

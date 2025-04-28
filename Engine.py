@@ -94,14 +94,20 @@ def draw_engine(main_window, Posx, Posy, L, R, D1):
     ######
     ##############
     u = sp.symbols('u')
-    U = np.array([[u**3, u**2, u, 1]])
-    M = np.array([[-1 ,3, -3, 1],[3, -6, 3, 0],[-3, 3, 0, 0], [1, 0 ,0 ,0 ]])
+    U = np.array([[u**2, u, 1]])
+    M = (1/2)*np.array([[1 , -2, 1],
+                        [ -2, 2, 0], 
+                        [1, 1 ,0 ]])
+    # U = np.array([[u**3, u**2, u, 1]])
+    # M = np.array([[-1 ,3, -3, 1],[3, -6, 3, 0],[-3, 3, 0, 0], [1, 0 ,0 ,0 ]])
     # M = np.array([[-9/2 ,27/2, -27/2, 9/2],[9, -45/2, 18, -9/2],[-11/2, 9, -9/2, 1], [1, 0 ,0 ,0 ]])
     print(M)
-    print(p_i)
-    print(M@p_i)
+    print(p_i[0:3])
+    print(M@p_i[0:3])
     basis = np.matmul(U,M)
-    P = np.matmul(basis,p_i)
+    print(basis)
+    P1 = np.matmul(basis, p_i[0:3]) 
+    P2 = np.matmul(basis, p_i[1:4])
     ##################
     N = 25
     u_val = np.linspace(0, 1, N)
@@ -110,55 +116,62 @@ def draw_engine(main_window, Posx, Posy, L, R, D1):
     U, W = np.meshgrid(u_val, w_val)
     ####################### 
     #############
-    X_eq = sp.lambdify(u, P[0,0])
-    Z_eq = sp.lambdify(u, P[0,2])
-    print(P)
     #############
-    X_val = X_eq(U)
-    # Curve is drawn on the XZ-plane
-    Y_val = np.zeros_like(X_val)  
-    Z_val = Z_eq(U)
-    print(X_val.shape)
-    print(Y_val.shape)
-    print(Z_val.shape)
-    #############
-    # Revole 
-    # 
-    Px = X_val 
-    Py = Z_val*np.cos(W) + Y_offset
-    Pz = Z_val*np.sin(W) 
-    print(Px.shape)
-    print(Py.shape)
-    print(Pz.shape)
-    ##################
+    # Process P1
+    X_eq1 = sp.lambdify(u, P1[0,0])
+    Z_eq1 = sp.lambdify(u, P1[0,2])
+    X_val1 = X_eq1(U)
+    Y_val1 = np.zeros_like(X_val1)
+    Z_val1 = Z_eq1(U)
+
+    # Process P2
+    X_eq2 = sp.lambdify(u, P2[0,0])
+    Z_eq2 = sp.lambdify(u, P2[0,2])
+    X_val2 = X_eq2(U)
+    Y_val2 = np.zeros_like(X_val2)
+    Z_val2 = Z_eq2(U)
+
+    # Revolution surfaces
+    Px1 = X_val1
+    Py1 = Z_val1*np.cos(W) + Y_offset
+    Pz1 = Z_val1*np.sin(W)
+
+    Px2 = X_val2
+    Py2 = Z_val2*np.cos(W) + Y_offset
+    Pz2 = Z_val2*np.sin(W)
 
 
 
     ##################
-    vertices = np.stack((Px.flatten(), Py.flatten(), Pz.flatten()), axis=-1)
-    triangles = matplotlib.tri.Triangulation(vertices[:,0], vertices[:,1])
-    mesh = Poly3DCollection(vertices[triangles.triangles])
+    # vertices = np.stack((Px.flatten(), Py.flatten(), Pz.flatten()), axis=-1)
+    # triangles = matplotlib.tri.Triangulation(vertices[:,0], vertices[:,1])
+    # mesh = Poly3DCollection(vertices[triangles.triangles])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     # ax.add_collection3d(mesh)
-    wfrm1 = {
-        'Px': Px,
-        'Py': Py,
-        'Pz': Pz,
-        'color': 'black',
-        'alpha': 0.5
-    }
-    wfrm2 = {
-        'Px': Px,
-        'Py': -Py,
-        'Pz': Pz,
-        'color': 'black',
-        'alpha': 0.5
-    }
-    main_window.plot_canvas.axis.plot_wireframe(Px, Py, Pz, color='black', alpha=0.5)
-    main_window.plot_canvas.axis.plot_wireframe(Px, -Py, Pz, color='black', alpha=0.5)
-    return wfrm1, wfrm2
+    # wfrm1 = {
+    #     'Px': Px1,
+    #     'Py': Py1,
+    #     'Pz': Pz1,
+    #     'color': 'black',
+    #     'alpha': 0.5
+    # }
+    # wfrm2 = {
+    #     'Px': Px,
+    #     'Py': -Py,
+    #     'Pz': Pz,
+    #     'color': 'black',
+    #     'alpha': 0.5
+    # }
+    # main_window.plot_canvas.axis.plot_wireframe(Px, Py, Pz, color='black', alpha=0.5)
+    # main_window.plot_canvas.axis.plot_wireframe(Px, -Py, Pz, color='black', alpha=0.5)
+    main_window.plot_canvas.axis.plot_wireframe(Px1, Py1, Pz1, color='black', alpha=0.5)
+    main_window.plot_canvas.axis.plot_wireframe(Px2, Py2, Pz2, color='black', alpha=0.5)
+    ####
+    main_window.plot_canvas.axis.plot_wireframe(Px1, -Py1, Pz1, color='black', alpha=0.5)
+    main_window.plot_canvas.axis.plot_wireframe(Px2, -Py2, Pz2, color='black', alpha=0.5)
+    # return wfrm1, wfrm2
     # ax.plot(X_val, Y_val, Z_val, label='B-spline curve')
     # ax.plot_surface(Px, Py, Pz, alpha=0.5, color='blue')
 

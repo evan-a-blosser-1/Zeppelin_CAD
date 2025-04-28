@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt, QRectF
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
+
 sys.dont_write_bytecode = True
 from config import clear_plot, save_as_stl
 from Envelope import draw_envelope

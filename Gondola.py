@@ -1,7 +1,8 @@
 import numpy as np
 from math import comb, cos, sin, pi
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
+import matplotlib.pyplot as plt
+'''
 def bezier_curve(control_points, num_points=100):
     """
     Generate a Bezier curve of arbitrary degree from control_points.
@@ -83,3 +84,82 @@ def draw_gondola(main_window, length, width, height,
 
     verts_arr = np.array(verts).reshape(-1,3)
     return verts_arr, verts
+'''
+
+
+
+
+# Option 2
+
+# -----------------------
+# Gondola Function
+# -----------------------
+
+# Bézier Curve Function
+def bezier_curve(control_points, num_points=150):
+    """
+    Generate a Bézier curve using textbook Bernstein polynomials.
+    """
+    m = len(control_points)
+    n = m - 1  # Degree of the Bézier curve
+    u = np.linspace(0.0, 1.0, num_points)
+    B = np.zeros((num_points, m), dtype=float)
+    for i in range(m):
+        B[:, i] = comb(n, i) * (u ** i) * ((1 - u) ** (n - i))
+    curve = B @ np.array(control_points)
+    return curve  # (num_points, 2) array [x,z]
+
+# Gondola Loft Function
+def create_gondola_profile(length, width, height, base_x=0.0):
+    """
+    Create control points for a symmetric gondola Bézier curve.
+    """
+    # Set fraction distances along X
+    side_frac = 0.25  # how far from center the sides start to dip
+
+    ctrl_pts = np.array([
+        [base_x - length/2,  0.0],                            # Start: left edge touching envelope
+        [base_x - side_frac*length, -height],                # Control: left side dipping
+        [base_x,              -height],                      # Center: deepest point
+        [base_x + side_frac*length, -height],                # Control: right side dipping
+        [base_x + length/2,  0.0]                             # End: right edge touching envelope
+    ])
+    
+    profile_curve = bezier_curve(ctrl_pts, num_points=150)
+    
+    return profile_curve, ctrl_pts
+
+# -----------------------
+# Lofting between two curves
+# -----------------------
+
+def create_rear_curve(front_ctrl_pts, shift_distance):
+    """
+    Shift the front control points backward along the X-axis
+    to create the rear curve control points.
+    """
+    rear_ctrl_pts = front_ctrl_pts.copy()
+    rear_ctrl_pts[:,0] -= shift_distance  # Shift backward in X
+    return rear_ctrl_pts
+
+def loft_between_curves(front_curve, rear_curve, num_sections=20):
+    """
+    Create a lofted surface between two curves using linear interpolation (textbook Section 2.4.3).
+    front_curve: (N, 2) array [x, z]
+    rear_curve: (N, 2) array [x, z]
+    Returns: surface (num_sections, N, 2)
+    """
+    w_vals = np.linspace(0,1,num_sections)  # Loft interpolation parameter w
+    surface = []
+    for w in w_vals:
+        loft_slice = (1-w)*front_curve + w*rear_curve
+        surface.append(loft_slice)
+    return np.array(surface)  # Shape: (num_sections, num_points_on_curve, 2)
+
+
+
+
+
+
+
+

@@ -2,33 +2,33 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib
 import sympy as sp
-u = sp.symbols('u')
-w = sp.symbols('w')
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 ### basic Fin Calculations
-R = int(input("Enter the radius of the Main Envelope:")) # max radius of the envelope (SET FORM OTHER PARAMETERS)
+# R = int(input("Enter the radius of the Main Envelope:")) # max radius of the envelope (SET FORM OTHER PARAMETERS)
 
-h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
+# h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
 
-# sanity check "h" inputs
-if h < 0:
-    print("Height cannot be negative")
-    h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
-elif h <= R:
-    print ("Height is equal to envelope radius.")
-    height_checkinput = input("Proceed? (y/n): ")
-    if height_checkinput != 'n':
-        h = R   
-        print("Height set to inital entry.")
-    else:
-        h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
-else:
-    print ("Fin height is good!")
+# ##sanity check "h" inputs
+# if h < 0:
+#     print("Height cannot be negative")
+#     h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
+# elif h <= R:
+#     print ("Height is equal to envelope radius.")
+#     height_checkinput = input("Proceed? (y/n): ")
+#     if height_checkinput != 'n':
+#         h = R   
+#         print("Height set to inital entry.")
+#     else:
+#         h = int(input("Enter the height of the fin (from centerline) > envelope radius or 0:"))
+# else:
+#     print ("Fin height is good!")
 
-#rest of parameters for the fin
-b = int(input("Enter the base of the fin > 0:"))
-t = int(input("Enter the length of the fin tip > 0 or base: "))
-offset = int(input("Enter the distance from the nose of the zeppelin (UNITS):"))
-theta_deg = int(input("Enter the angle of the fin (degrees): "))
+# ##rest of parameters for the fin
+# b = int(input("Enter the base of the fin > 0:"))
+# t = int(input("Enter the length of the fin tip > 0 or base: "))
+# offset = int(input("Enter the distance from the nose of the zeppelin (UNITS):"))
+# theta_deg = int(input("Enter the angle of the fin (degrees): "))
 
 def Ro_x(theta, Px, Py, Pz): # rotation of a point around the x-axis
     Ro_x = np.array([[1,0,0],[0, np.cos(theta), -np.sin(theta)],[0, np.sin(theta), np.cos(theta)]])
@@ -36,8 +36,10 @@ def Ro_x(theta, Px, Py, Pz): # rotation of a point around the x-axis
     return P_rotated
 ### Create NACA 0012 airfoil points/spline
 
-def build_fin(h, b, t, offset, theta_deg): # args are height, base, tip, and offset
+def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base, tip, and offset
     lines = 10 # number of lines for the surface plot
+    u = sp.symbols('u')
+    w = sp.symbols('w')
     # Create points for the surface path of the initial fin construction
     # four points for the corners of the fin
     P0 = np.array([0, 0, 0]) # origin
@@ -234,85 +236,106 @@ def build_fin(h, b, t, offset, theta_deg): # args are height, base, tip, and off
             ribs_mirrored_x[i,j] = S_surface_mirrored_x(u_value[j], w_value[i])
             ribs_mirrored_y[i,j] = S_surface_mirrored_y(u_value[j], w_value[i])
             ribs_mirrored_z[i,j] = S_surface_mirrored_z(u_value[j], w_value[i])
+
+    ax = main_window.plot_canvas.axis
+    # Plot the surface lines of the airfoil
+    for i in range(lines):
+        main_window.plot_canvas.axis.plot(S_surface_values_x[i,:], S_surface_values_y[i,:], S_surface_values_z[i,:], color='black', alpha=0.5) # spanwise lines
+        main_window.plot_canvas.axis.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], color = 'black', alpha=0.5) # ribs of the airfoil fin
+        main_window.plot_canvas.axis.plot(S_surface_values_mirrored_x[i,:], S_surface_values_mirrored_y[i,:], S_surface_values_mirrored_z[i,:], color = 'black', alpha=0.5) # spanwise lines
+        main_window.plot_canvas.axis.plot(ribs_mirrored_x[i,:], ribs_mirrored_y[i,:], ribs_mirrored_z[i,:], color = 'black', alpha=0.5) # ribs of the airfoil fin
+        # plt.plot(Surface_values_x2[i,:], Surface_values_y2[i,:], Surface_values_z2[i,:], label='S(u,w) fin2') # spanwise lines for fin2
+        # plt.plot(ribs_x2[i,:], ribs_y2[i,:], ribs_z2[i,:], label='Ribs fin2') # ribs of the airfoil fin2
+        # plt.plot(S_surface_values_mirrored_x2[i,:], S_surface_values_mirrored_y2[i,:], S_surface_values_mirrored_z2[i,:], label='S(u,w) fin2 mirrored') # spanwise lines for fin2 mirrored
+        # plt.plot(ribs_mirrored_x2[i,:], ribs_mirrored_y2[i,:], ribs_mirrored_z2[i,:], label='Ribs fin2 mirrored') # ribs of the airfoil fin2 mirrored
+        main_window.plot_canvas.draw()
+    
     
     return S_surface_values_x, S_surface_values_y, S_surface_values_z, ribs_x, ribs_y, ribs_z, S_surface_values_mirrored_x, S_surface_values_mirrored_y, S_surface_values_mirrored_z, ribs_mirrored_x, ribs_mirrored_y, ribs_mirrored_z
 
 
-fin_lines = np.zeros(12)
 
-fin_lines = build_fin(h, b, t, offset, theta_deg) # build the fin with the given parameters
+# fin_lines = np.zeros(12)
 
-S_surface_values_x = fin_lines[0]
-S_surface_values_y = fin_lines[1]
-S_surface_values_z = fin_lines[2]
-ribs_x = fin_lines[3]
-ribs_y = fin_lines[4]
-ribs_z = fin_lines[5]
-S_surface_values_mirrored_x = fin_lines[6]
-S_surface_values_mirrored_y = fin_lines[7]
-S_surface_values_mirrored_z = fin_lines[8]
-ribs_mirrored_x = fin_lines[9]
-ribs_mirrored_y = fin_lines[10]
-ribs_mirrored_z = fin_lines[11]                   
+# fin_lines = build_fin(h, b, t, offset, theta_deg) # build the fin with the given parameters
 
-theta_deg2 = 135
+# S_surface_values_x = fin_lines[0]
+# S_surface_values_y = fin_lines[1]
+# S_surface_values_z = fin_lines[2]
+# ribs_x = fin_lines[3]
+# ribs_y = fin_lines[4]
+# ribs_z = fin_lines[5]
+# S_surface_values_mirrored_x = fin_lines[6]
+# S_surface_values_mirrored_y = fin_lines[7]
+# S_surface_values_mirrored_z = fin_lines[8]
+# ribs_mirrored_x = fin_lines[9]
+# ribs_mirrored_y = fin_lines[10]
+# ribs_mirrored_z = fin_lines[11]                   
 
-fin_lines2 = np.zeros(12)
-fin_lines2 = build_fin(h, b, t, offset, theta_deg2) # build the fin with the given parameters
+# theta_deg2 = 135
 
-Surface_values_x2 = fin_lines2[0]
-Surface_values_y2 = fin_lines2[1]
-Surface_values_z2 = fin_lines2[2]
-ribs_x2 = fin_lines2[3]
-ribs_y2 = fin_lines2[4]
-ribs_z2 = fin_lines2[5]
-S_surface_values_mirrored_x2 = fin_lines2[6]
-S_surface_values_mirrored_y2 = fin_lines2[7]
-S_surface_values_mirrored_z2 = fin_lines2[8]
-ribs_mirrored_x2 = fin_lines2[9]
-ribs_mirrored_y2 = fin_lines2[10]
-ribs_mirrored_z2 = fin_lines2[11]
+# fin_lines2 = np.zeros(12)
+# fin_lines2 = build_fin(h, b, t, offset, theta_deg2) # build the fin with the given parameters
 
-### Create a 3D plot
+# Surface_values_x2 = fin_lines2[0]
+# Surface_values_y2 = fin_lines2[1]
+# Surface_values_z2 = fin_lines2[2]
+# ribs_x2 = fin_lines2[3]
+# ribs_y2 = fin_lines2[4]
+# ribs_z2 = fin_lines2[5]
+# S_surface_values_mirrored_x2 = fin_lines2[6]
+# S_surface_values_mirrored_y2 = fin_lines2[7]
+# S_surface_values_mirrored_z2 = fin_lines2[8]
+# ribs_mirrored_x2 = fin_lines2[9]
+# ribs_mirrored_y2 = fin_lines2[10]
+# ribs_mirrored_z2 = fin_lines2[11]
 
-plt.xlabel('X-axis')
-plt.ylabel('Y-axis')
-ax = plt.axes(projection='3d')
-# Plot the edges of the fin and airfoil points by connecting the points
-# ax.plot([P0[0], P1[0]], [P0[1], P1[1]], [P0[2], P1[2]], color='blue', label='Base Edge')  # P0 to P1
-# ax.plot([P1[0], P2[0]], [P1[1], P2[1]], [P1[2], P2[2]], color='green', label='Height Edge')  # P1 to P2
-# ax.plot([P2[0], P3[0]], [P2[1], P3[1]], [P2[2], P3[2]], color='red', label='Tip Edge')  # P2 to P3
-# ax.plot([P3[0], P0[0]], [P3[1], P0[1]], [P3[2], P0[2]], color='purple', label='Diagonal Edge')  # P3 to P0
-# ax.plot([P4[0], P5[0]], [P4[1], P5[1]], [P4[2], P5[2]], color='orange', label='Airfoil Leading Edge')  # P4 to P5
-# ax.plot([P5[0], P6[0]], [P5[1], P6[1]], [P5[2], P6[2]], color='cyan', label='Airfoil Trailing Edge')  # P5 to P6
-# ax.plot([P7[0], P8[0]], [P7[1], P8[1]], [P7[2], P8[2]], color='yellow', label='Airfoil Top Leading Edge')  # P7 to P8
-# ax.plot([P0[0], P10[0]],[P0[1], P10[1]], [P0[1], P10[2]], color='magenta', label='Airfoil Top Trailing Edge')  # P0 to P10
-# ax.plot([P10[0], P1[0]],[P10[1], P1[1]], [P10[2], P1[2]], color='brown', label='Airfoil Bottom Trailing Edge')  # P10 to P1
-# ax.plot([P11_final[0], P3[0]],[P11_final[1], P3[1]], [P11_final[2], P3[2]], color='pink', label='Airfoil Bottom Leading Edge')  # P11 to P3
-# ax.plot([P11_final[0], P2[0]],[P11_final[1], P2[1]], [P11_final[2], P2[2]], color='grey', label='Airfoil Bottom Leading Edge')  # P11 to P8
+# # Plot the surface lines of the airfoil
+# for i in range(len(fin_lines[0])):
+#     plt.plot(S_surface_values_x[i,:], S_surface_values_y[i,:], S_surface_values_z[i,:], label='S(u,w)') # spanwise lines
+#     plt.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], label='Ribs') # ribs of the airfoil fin
+#     plt.plot(S_surface_values_mirrored_x[i,:], S_surface_values_mirrored_y[i,:], S_surface_values_mirrored_z[i,:], label='S(u,w)') # spanwise lines
+#     plt.plot(ribs_mirrored_x[i,:], ribs_mirrored_y[i,:], ribs_mirrored_z[i,:], label='Ribs') # ribs of the airfoil fin
+#     plt.plot(Surface_values_x2[i,:], Surface_values_y2[i,:], Surface_values_z2[i,:], label='S(u,w) fin2') # spanwise lines for fin2
+#     plt.plot(ribs_x2[i,:], ribs_y2[i,:], ribs_z2[i,:], label='Ribs fin2') # ribs of the airfoil fin2
+#     plt.plot(S_surface_values_mirrored_x2[i,:], S_surface_values_mirrored_y2[i,:], S_surface_values_mirrored_z2[i,:], label='S(u,w) fin2 mirrored') # spanwise lines for fin2 mirrored
+#     plt.plot(ribs_mirrored_x2[i,:], ribs_mirrored_y2[i,:], ribs_mirrored_z2[i,:], label='Ribs fin2 mirrored') # ribs of the airfoil fin2 mirrored
 
-# Plot the airfoil base and tip curves for original and mirrored points for full airfoil
-# plt.plot(foilbase_x_values, foilbase_y_values, foilbase_z_values, color='black', label='Airfoil Path')  # Airfoil path
-# plt.plot(foiltip_x_values, foiltip_y_values, foiltip_z_values, color='black', label='Airfoil Top Path')  # Airfoil path
-# plt.plot(foiltip_mirrored_x_values, foiltip_mirrored_y_values, foiltip_mirrored_z_values, color='black', label='Airfoil Bottom Path')  # Airfoil path
-# plt.plot(foilbase_mirrored_x_values, foilbase_mirrored_y_values, foilbase_mirrored_z_values, color='black', label='Airfoil Bottom Path')  # Airfoil path
 
-# Plot the surface lines of the airfoil
-for i in range(len(fin_lines[0])):
-    plt.plot(S_surface_values_x[i,:], S_surface_values_y[i,:], S_surface_values_z[i,:], label='S(u,w)') # spanwise lines
-    plt.plot(ribs_x[i,:], ribs_y[i,:], ribs_z[i,:], label='Ribs') # ribs of the airfoil fin
-    plt.plot(S_surface_values_mirrored_x[i,:], S_surface_values_mirrored_y[i,:], S_surface_values_mirrored_z[i,:], label='S(u,w)') # spanwise lines
-    plt.plot(ribs_mirrored_x[i,:], ribs_mirrored_y[i,:], ribs_mirrored_z[i,:], label='Ribs') # ribs of the airfoil fin
-    plt.plot(Surface_values_x2[i,:], Surface_values_y2[i,:], Surface_values_z2[i,:], label='S(u,w) fin2') # spanwise lines for fin2
-    plt.plot(ribs_x2[i,:], ribs_y2[i,:], ribs_z2[i,:], label='Ribs fin2') # ribs of the airfoil fin2
-    plt.plot(S_surface_values_mirrored_x2[i,:], S_surface_values_mirrored_y2[i,:], S_surface_values_mirrored_z2[i,:], label='S(u,w) fin2 mirrored') # spanwise lines for fin2 mirrored
-    plt.plot(ribs_mirrored_x2[i,:], ribs_mirrored_y2[i,:], ribs_mirrored_z2[i,:], label='Ribs fin2 mirrored') # ribs of the airfoil fin2 mirrored
+## NO longer needed, but keeping for reference
+# # Plot the airfoil base and tip curves for original and mirrored points for full airfoil
+# # plt.plot(foilbase_x_values, foilbase_y_values, foilbase_z_values, color='black', label='Airfoil Path')  # Airfoil path
+# # plt.plot(foiltip_x_values, foiltip_y_values, foiltip_z_values, color='black', label='Airfoil Top Path')  # Airfoil path
+# # plt.plot(foiltip_mirrored_x_values, foiltip_mirrored_y_values, foiltip_mirrored_z_values, color='black', label='Airfoil Bottom Path')  # Airfoil path
+# # plt.plot(foilbase_mirrored_x_values, foilbase_mirrored_y_values, foilbase_mirrored_z_values, color='black', label='Airfoil Bottom Path')  # Airfoil path
 
-# Add a legend for clarity
-ax.legend(bbox_to_anchor = (1.1, 0.1))
-view_scale = int(input("set axis length for 3d plot:"))
-ax.set_zbound(0, view_scale) # set the z-axis limit for proper scale in the visualization
-ax.set_xbound(0, view_scale) # set the x-axis limit for proper scale in the visualization
-ax.set_ybound(0, view_scale) # set the y-axis limit for proper scale in the visualization
-plt.show()
+
+
+# ### Create a 3D plot
+
+# plt.xlabel('X-axis')
+# plt.ylabel('Y-axis')
+# ax = plt.axes(projection='3d')
+# # Plot the edges of the fin and airfoil points by connecting the points
+# # ax.plot([P0[0], P1[0]], [P0[1], P1[1]], [P0[2], P1[2]], color='blue', label='Base Edge')  # P0 to P1
+# # ax.plot([P1[0], P2[0]], [P1[1], P2[1]], [P1[2], P2[2]], color='green', label='Height Edge')  # P1 to P2
+# # ax.plot([P2[0], P3[0]], [P2[1], P3[1]], [P2[2], P3[2]], color='red', label='Tip Edge')  # P2 to P3
+# # ax.plot([P3[0], P0[0]], [P3[1], P0[1]], [P3[2], P0[2]], color='purple', label='Diagonal Edge')  # P3 to P0
+# # ax.plot([P4[0], P5[0]], [P4[1], P5[1]], [P4[2], P5[2]], color='orange', label='Airfoil Leading Edge')  # P4 to P5
+# # ax.plot([P5[0], P6[0]], [P5[1], P6[1]], [P5[2], P6[2]], color='cyan', label='Airfoil Trailing Edge')  # P5 to P6
+# # ax.plot([P7[0], P8[0]], [P7[1], P8[1]], [P7[2], P8[2]], color='yellow', label='Airfoil Top Leading Edge')  # P7 to P8
+# # ax.plot([P0[0], P10[0]],[P0[1], P10[1]], [P0[1], P10[2]], color='magenta', label='Airfoil Top Trailing Edge')  # P0 to P10
+# # ax.plot([P10[0], P1[0]],[P10[1], P1[1]], [P10[2], P1[2]], color='brown', label='Airfoil Bottom Trailing Edge')  # P10 to P1
+# # ax.plot([P11_final[0], P3[0]],[P11_final[1], P3[1]], [P11_final[2], P3[2]], color='pink', label='Airfoil Bottom Leading Edge')  # P11 to P3
+# # ax.plot([P11_final[0], P2[0]],[P11_final[1], P2[1]], [P11_final[2], P2[2]], color='grey', label='Airfoil Bottom Leading Edge')  # P11 to P8
+
+
+
+# # Add a legend for clarity
+# ax.legend(bbox_to_anchor = (1.1, 0.1))
+# view_scale = int(input("set axis length for 3d plot:"))
+# ax.set_zbound(0, view_scale) # set the z-axis limit for proper scale in the visualization
+# ax.set_xbound(0, view_scale) # set the x-axis limit for proper scale in the visualization
+# ax.set_ybound(0, view_scale) # set the y-axis limit for proper scale in the visualization
+# plt.show()
 ### MERGE COMMENTS

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib
 import sympy as sp
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 ### basic Fin Calculations
 # R = int(input("Enter the radius of the Main Envelope:")) # max radius of the envelope (SET FORM OTHER PARAMETERS)

@@ -76,9 +76,9 @@ def draw_gondola(main_window, length, width, height,
     ax = main_window.plot_canvas.axis
     poly = Poly3DCollection(verts, facecolor='gray', alpha=0.8, linewidths=0.02)
     ax.add_collection3d(poly)
-    ax.set_xlim(base_x - length/2, base_x + length/2)
-    ax.set_ylim(base_y - width/2,  base_y + width/2)
-    ax.set_zlim(base_z - width/2,  base_z + width/2)
+    # ax.set_xlim(base_x - length/2, base_x + length/2)
+    # ax.set_ylim(base_y - width/2,  base_y + width/2)
+    # ax.set_zlim(base_z - width/2,  base_z + width/2)
     main_window.plot_canvas.draw()
 
     verts_arr = np.array(verts).reshape(-1,3)

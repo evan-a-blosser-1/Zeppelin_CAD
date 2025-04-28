@@ -70,7 +70,7 @@ def draw_envelope(main_window,L,R,D1):
     # ax.plot(X_val, Y_val, Z_val, label='B-spline curve')
     # ax.plot_surface(Px, Py, Pz, alpha=0.5, color='blue')
 
-    main_window.plot_canvas.axis.add_collection3d(mesh)
+    # main_window.plot_canvas.axis.add_collection3d(mesh)
     main_window.plot_canvas.axis.plot_wireframe(Px, Py, Pz, color='black', alpha=0.5)
     main_window.plot_canvas.axis.scatter(p_i[:,0], p_i[:,1], p_i[:,2], color='red', label='Control points')
     main_window.logback.append(f"Graphing...")

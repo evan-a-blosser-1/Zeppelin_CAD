@@ -77,7 +77,7 @@ def build_fin(main_window, h, b, t, offset, theta_deg): # args are height, base,
 
     # print('B_airfoil_s: ',B_airfoil_s,'\n','P_airfoil_s: ',P_airfoil_s)
 
-    foilbase_x = sp.lambdify(u, P_airfoil_s[0,0], modules='numpy')
+    foilbase_x = sp.lambdify(u, P_airfoil_s[0,0], modules='numpy')  # this converts the airfoil points to a function of u that can be evaluated
     foilbase_x_values = foilbase_x(u_value) # x-coordinates of the airfoil path
     #print('foilbase_x: ',foilbase_x_values)
     foilbase_y_values = 0

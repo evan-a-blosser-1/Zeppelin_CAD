@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import sympy as sp 
 
 def draw_engine(main_window, Posx, Posy, L, R, D1):
-    main_window.logback.append(f"Creating engine...")
+    # main_window.logback.append(f"Creating engine...")
     ######
     # Translation matrix, move down x-axis
     Mi = Posx
@@ -101,11 +101,11 @@ def draw_engine(main_window, Posx, Posy, L, R, D1):
     # U = np.array([[u**3, u**2, u, 1]])
     # M = np.array([[-1 ,3, -3, 1],[3, -6, 3, 0],[-3, 3, 0, 0], [1, 0 ,0 ,0 ]])
     # M = np.array([[-9/2 ,27/2, -27/2, 9/2],[9, -45/2, 18, -9/2],[-11/2, 9, -9/2, 1], [1, 0 ,0 ,0 ]])
-    print(M)
-    print(p_i[0:3])
-    print(M@p_i[0:3])
+    # print(M)
+    # print(p_i[0:3])
+    # print(M@p_i[0:3])
     basis = np.matmul(U,M)
-    print(basis)
+    # print(basis)
     P1 = np.matmul(basis, p_i[0:3]) 
     P2 = np.matmul(basis, p_i[1:4])
     ##################

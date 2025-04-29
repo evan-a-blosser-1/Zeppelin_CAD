@@ -33,7 +33,7 @@ class PlotCanvas(FigureCanvas):
 class MainWindow(QMainWindow):
     def __init__(self):  # Fixed method name from __int__ to __init__
         super().__init__()
-        self.setWindowTitle("Zeppelin CAD")
+        self.setWindowTitle("Zep-CAD")
         self.setWindowState(Qt.WindowMaximized)
         ######################################
         ######################################
@@ -163,11 +163,11 @@ class MainWindow(QMainWindow):
         self.eng_length_label = QLabel("Engine Length: (m)")
         self.eng_length = QLineEdit("50")
         self.eng_radius_label = QLabel("Engine Radius: (m)")
-        self.eng_radius = QLineEdit("25.25")
+        self.eng_radius = QLineEdit("13.25")
         self.eng_d1_label = QLabel("Engine Taper: (m)")
         self.eng_d1 = QLineEdit("11")
-        self.eng_Posx_label = QLabel("X-location from midpoint to back: (%)")
-        self.eng_Posx = QLineEdit("25")
+        self.eng_Posx_label = QLabel("Percent Aft of Nose: (%)")
+        self.eng_Posx = QLineEdit("75")
 
         eng_grid.addWidget(self.eng_length_label, 0, 0)
         eng_grid.addWidget(self.eng_length, 0, 1)
@@ -189,16 +189,16 @@ class MainWindow(QMainWindow):
         # Fins
         fin_grid = QGridLayout()
         self.fin_label = QLabel("Fin Base: (m)")
-        self.fin_len = QLineEdit("60")
+        self.fin_len = QLineEdit("40")
         self.fin_wid_label = QLabel("Fin Tip: (m)")
-        self.fin_wid = QLineEdit("25")
+        self.fin_wid = QLineEdit("10")
         self.fin_height_label = QLabel("Fin Height: (m)")
-        self.fin_height = QLineEdit("25")
+        self.fin_height = QLineEdit("40")
         self.fin_dis_label = QLabel("Distance From Nose: (m)")
         self.fin_dis = QLineEdit("125")
         # 
         self.fin_num_label = QLabel("Number of Fins:")
-        self.fin_num = QLineEdit("5")
+        self.fin_num = QLineEdit("3")
         
         fin_grid.addWidget(self.fin_label, 0, 0)
         fin_grid.addWidget(self.fin_len, 0, 1)
@@ -336,8 +336,10 @@ class MainWindow(QMainWindow):
             #     raise ValueError("Nose length too short")
             
             #############################################
-            self.logback.append(f"Drawing envelope with:")
-            
+            self.logback.append(f"---------------------------")
+            self.logback.append(f"Drawing envelope:")
+            self.logback.append(f"L={L}, R={R}, D1={D1}")
+            self.logback.append(f"---------------------------")         
             # Create example 3D plot
             # x = np.linspace(0, env_len, 100)
             # y = np.sin(x * env_per)
@@ -443,15 +445,15 @@ class MainWindow(QMainWindow):
         try:
             # self.eng_wf1, self.eng_wf2 = draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
             draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
+            self.logback.append(f"---------------------------")
+            self.logback.append(f"Drawing engine:")
+            self.logback.append(f"L={L_eng}, R={R_eng}, D1={D1_eng}, Per_bck={Per_Bck}")
+            self.logback.append(f"---------------------------")
             
-            self.logback.append(f"Drawing engine...")
         except Exception as e:
             QMessageBox.critical(self, "Engine Error", str(e))
             self.logback.append(f"Engine error: {e}")
             
-
-
-
 
 
 
@@ -477,9 +479,11 @@ class MainWindow(QMainWindow):
                 if angle > 360:
                     angle = angle - 360
                 fin = build_fin(self, H, L, W, D, angle)
+            self.logback.append(f"---------------------------")     
+            self.logback.append(f"Drawing fins:")
+            self.logback.append(f"L={L}, W={W}, H={H}, D={D}, N={N}")
+            self.logback.append(f"---------------------------")
             
-            self.logback.append(f"Drawing fins with:")
-
         except ValueError:
                     self.logback.append(f"Error: {fin_err_message}")
                     QMessageBox.warning(self, "Invalid Input")

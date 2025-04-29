@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import sympy as sp
 
 def draw_envelope(main_window,L,R,D1):
-    main_window.logback.append(f"Creating envelope with L={L}, R={R}, Percent={D1}")
+    # main_window.logback.append(f"Creating envelope with L={L}, R={R}, Percent={D1}")
     # Length envelope
     #L  = 15 
     #R  = 5
@@ -34,9 +34,9 @@ def draw_envelope(main_window,L,R,D1):
     U = np.array([[u**3, u**2, u, 1]])
     M = np.array([[-9/2 ,27/2, -27/2, 9/2],[9, -45/2, 18, -9/2],[-11/2, 9, -9/2, 1], [1, 0 ,0 ,0 ]])
     # M = np.array([[-1 , 3, -3, 1],[3, -6, 3, 0],[-3, 3, 0, 0], [1, 0, 0,0 ]])
-    print(M)
-    print(p_i)
-    print(M@p_i)
+    # print(M)
+    # print(p_i)
+    # print(M@p_i)
     P = U@M@p_i
     ######
     N = 25
@@ -53,9 +53,9 @@ def draw_envelope(main_window,L,R,D1):
     # Curve is drawn on the XZ-plane
     Y_val = np.zeros_like(X_val)  
     Z_val = Z_eq(U)
-    print(X_val.shape)
-    print(Y_val.shape)
-    print(Z_val.shape)
+    # print(X_val.shape)
+    # print(Y_val.shape)
+    # print(Z_val.shape)
     #############
     Px = X_val
     Py = Z_val*np.cos(W)
@@ -78,7 +78,10 @@ def draw_envelope(main_window,L,R,D1):
     # main_window.plot_canvas.axis.add_collection3d(mesh)
     main_window.plot_canvas.axis.plot_wireframe(wfrm['Px'], wfrm['Py'], wfrm['Pz'],  color='black', alpha=0.5)
     # main_window.plot_canvas.axis.scatter(p_i[:,0], p_i[:,1], p_i[:,2], color='red', label='Control points')
-    main_window.logback.append(f"Graphing...")
+    # main_window.logback.append(f"Graphing...")
+    main_window.plot_canvas.axis.set_xlabel('X-axis (m)')
+    main_window.plot_canvas.axis.set_ylabel('Y-axis (m)')
+    main_window.plot_canvas.axis.set_zlabel('Z-axis (m)')
     main_window.plot_canvas.axis.set_aspect('equal', 'box')
     main_window.plot_canvas.draw()
     ##############################
@@ -93,6 +96,6 @@ def draw_envelope(main_window,L,R,D1):
     #                                 color='red', 
     #                                 s=100,  # larger point size
     #                                 label='Lowest points')
-    print("Lowest points:")
-    print(lowest_points)
+    # print("Lowest points:")
+    # print(lowest_points)
     return lowest_points, triangles, vertices, wfrm 

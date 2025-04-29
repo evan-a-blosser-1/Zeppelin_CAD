@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
         self.eng_radius = QLineEdit("13.25")
         self.eng_d1_label = QLabel("Engine Taper: (m)")
         self.eng_d1 = QLineEdit("11")
-        self.eng_Posx_label = QLabel("X-location from midpoint to back: (%)")
+        self.eng_Posx_label = QLabel("Percent Aft of Nose: (%)")
         self.eng_Posx = QLineEdit("75")
 
         eng_grid.addWidget(self.eng_length_label, 0, 0)
@@ -188,16 +188,16 @@ class MainWindow(QMainWindow):
         # Fins
         fin_grid = QGridLayout()
         self.fin_label = QLabel("Fin Base: (m)")
-        self.fin_len = QLineEdit("60")
+        self.fin_len = QLineEdit("40")
         self.fin_wid_label = QLabel("Fin Tip: (m)")
-        self.fin_wid = QLineEdit("25")
+        self.fin_wid = QLineEdit("10")
         self.fin_height_label = QLabel("Fin Height: (m)")
-        self.fin_height = QLineEdit("25")
+        self.fin_height = QLineEdit("40")
         self.fin_dis_label = QLabel("Distance From Nose: (m)")
         self.fin_dis = QLineEdit("125")
         # 
         self.fin_num_label = QLabel("Number of Fins:")
-        self.fin_num = QLineEdit("5")
+        self.fin_num = QLineEdit("3")
         
         fin_grid.addWidget(self.fin_label, 0, 0)
         fin_grid.addWidget(self.fin_len, 0, 1)

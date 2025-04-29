@@ -256,10 +256,10 @@ class MainWindow(QMainWindow):
         # self.save_stl_button.clicked.connect(lambda: save_as_stl(self))  
         # bottom_panel_layout.addWidget(self.save_stl_button)
         #################################################
-        # Merge button
-        self.merge_button = QPushButton("Merge All Meshes")
-        self.merge_button.clicked.connect(lambda: merge_wireframes(self))
-        bottom_panel_layout.addWidget(self.merge_button)
+        # # Merge button
+        # self.merge_button = QPushButton("Merge All Meshes")
+        # self.merge_button.clicked.connect(lambda: merge_wireframes(self))
+        # bottom_panel_layout.addWidget(self.merge_button)
         
         
         # Add log output window

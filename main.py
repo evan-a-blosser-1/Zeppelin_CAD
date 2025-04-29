@@ -195,7 +195,7 @@ class MainWindow(QMainWindow):
         self.fin_height_label = QLabel("Fin Height: (m)")
         self.fin_height = QLineEdit("40")
         self.fin_dis_label = QLabel("Distance From Nose: (m)")
-        self.fin_dis = QLineEdit("125")
+        self.fin_dis = QLineEdit("155")
         # 
         self.fin_num_label = QLabel("Number of Fins:")
         self.fin_num = QLineEdit("3")
@@ -377,7 +377,7 @@ class MainWindow(QMainWindow):
         try:
             from Gondola import draw_canoe_gondola
 
-            self.logback.append(f"Self.low_pnt: {self.low_pnt}")
+            # self.logback.append(f"Self.low_pnt: {self.low_pnt}")
             # print(f"self.low_pnt: {self.low_pnt}")
 
             # Verify and unpack self.low_pnt

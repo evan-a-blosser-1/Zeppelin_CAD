@@ -12,12 +12,13 @@ from PySide6.QtGui import QPainter, QPen, QColor, QBrush
 from PySide6.QtCore import Qt, QRectF
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 sys.dont_write_bytecode = True
 from config import clear_plot, save_as_stl, merge_wireframes
 from Envelope import draw_envelope
 from Engine import draw_engine
-from Gondola import draw_gondola
+from Gondola import draw_canoe_gondola
 from Fins import build_fin, Ro_x    
 
 
@@ -34,6 +35,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Zeppelin CAD")
         self.setWindowState(Qt.WindowMaximized)
+        ######################################
         ######################################
         # Globals
         self.low_pnt = None
@@ -133,24 +135,24 @@ class MainWindow(QMainWindow):
         gond_grid.addWidget(QLabel("Height (m)"), 2,0); gond_grid.addWidget(self.gondola_height,2,1)
 
         # Sliders for nose/tail sharpness & plateau
-        self.ns_slider = QSlider(Qt.Horizontal); self.ns_slider.setRange(1,10); self.ns_slider.setValue(2)
-        self.ts_slider = QSlider(Qt.Horizontal); self.ts_slider.setRange(1,10); self.ts_slider.setValue(2)
-        self.ps_slider = QSlider(Qt.Horizontal); self.ps_slider.setRange(0,100); self.ps_slider.setValue(100)
-        self.ns_label   = QLabel("Nose Sharpness: 2.0")
-        self.ts_label   = QLabel("Tail Sharpness: 2.0")
-        self.ps_label   = QLabel("Plateau Scale: 1.00")
+        #self.ns_slider = QSlider(Qt.Horizontal); self.ns_slider.setRange(1,10); self.ns_slider.setValue(2)
+        #self.ts_slider = QSlider(Qt.Horizontal); self.ts_slider.setRange(1,10); self.ts_slider.setValue(2)
+        #self.ps_slider = QSlider(Qt.Horizontal); self.ps_slider.setRange(0,100); self.ps_slider.setValue(100)
+        #self.ns_label   = QLabel("Nose Sharpness: 2.0")
+        #self.ts_label   = QLabel("Tail Sharpness: 2.0")
+        #self.ps_label   = QLabel("Plateau Scale: 1.00")
         # Connect
-        self.ns_slider.valueChanged.connect(lambda v: self.ns_label.setText(f"Nose Sharpness: {v/1.0:.1f}"))
-        self.ts_slider.valueChanged.connect(lambda v: self.ts_label.setText(f"Tail Sharpness: {v/1.0:.1f}"))
-        self.ps_slider.valueChanged.connect(lambda v: self.ps_label.setText(f"Plateau Scale: {v/100.0:.2f}"))
+        #self.ns_slider.valueChanged.connect(lambda v: self.ns_label.setText(f"Nose Sharpness: {v/1.0:.1f}"))
+        #self.ts_slider.valueChanged.connect(lambda v: self.ts_label.setText(f"Tail Sharpness: {v/1.0:.1f}"))
+        #self.ps_slider.valueChanged.connect(lambda v: self.ps_label.setText(f"Plateau Scale: {v/100.0:.2f}"))
 
         self.draw_gond_button = QPushButton("Draw Gondola")
         self.draw_gond_button.clicked.connect(self.draw_gondola)
 
         gond_layout.addLayout(gond_grid)
-        gond_layout.addWidget(self.ns_label); gond_layout.addWidget(self.ns_slider)
-        gond_layout.addWidget(self.ts_label); gond_layout.addWidget(self.ts_slider)
-        gond_layout.addWidget(self.ps_label); gond_layout.addWidget(self.ps_slider)
+        #gond_layout.addWidget(self.ns_label); gond_layout.addWidget(self.ns_slider)
+        #gond_layout.addWidget(self.ts_label); gond_layout.addWidget(self.ts_slider)
+        #gond_layout.addWidget(self.ps_label); gond_layout.addWidget(self.ps_slider)
         gond_layout.addWidget(self.draw_gond_button)
         gond_layout.addStretch()
         
@@ -255,17 +257,17 @@ class MainWindow(QMainWindow):
         # self.save_stl_button.clicked.connect(lambda: save_as_stl(self))  
         # bottom_panel_layout.addWidget(self.save_stl_button)
         #################################################
-        # Merge button
-        self.merge_button = QPushButton("Merge All Meshes")
-        self.merge_button.clicked.connect(lambda: merge_wireframes(self))
-        bottom_panel_layout.addWidget(self.merge_button)
+        # # Merge button
+        # self.merge_button = QPushButton("Merge All Meshes")
+        # self.merge_button.clicked.connect(lambda: merge_wireframes(self))
+        # bottom_panel_layout.addWidget(self.merge_button)
         
         
         # Add log output window
         self.logback = QTextEdit()
         self.logback.setReadOnly(True)  
         self.logback.setFixedHeight(500)  
-        self.logback.setStyleSheet("background-color: white; font-family: Consolas;")
+        self.logback.setStyleSheet("background-color: white; color: black; font-family: Consolas;")
         bottom_panel_layout.addWidget(self.logback)
         
         # Add tab panel and bottom panel to left container
@@ -356,31 +358,47 @@ class MainWindow(QMainWindow):
 
 
     def draw_gondola(self):
-        if self.low_pnt is None:
+        if self.low_pnt is None or not len(self.low_pnt) or self.env_verts is None or not len(self.env_verts):
             QMessageBox.warning(self, "Gondola Error", "Please draw the envelope first")
             return
 
-        L  = float(self.gondola_len.text())
-        W  = float(self.gondola_wid.text())
-        H  = float(self.gondola_height.text())
-        ns = self.ns_slider.value()            # 1–10
-        ts = self.ts_slider.value()            # 1–10
-        ps = self.ps_slider.value() / 100.0    # 0.00–1.00
+        # Get Length, Width, Height from text boxes
+        L = float(self.gondola_len.text())
+        W = float(self.gondola_wid.text())
+        H = float(self.gondola_height.text())
 
-        self.logback.append(f"Gondola → L={L}, W={W}, H={H}, nose_sharp={ns}, tail_sharp={ts}, plateau={ps}")
+        self.logback.append(f"Gondola → L={L}, W={W}, H={H}")
 
         try:
-            verts, _ = draw_gondola(self,
-                                    length=L,
-                                    width=W,
-                                    height=H,
-                                    nose_sharp=ns,
-                                    tail_sharp=ts,
-                                    plateau_scale=ps)
-            self.gond_verts = verts
+            from Gondola import draw_canoe_gondola
+
+            self.logback.append(f"Self.low_pnt: {self.low_pnt}")
+            print(f"self.low_pnt: {self.low_pnt}")
+
+            # Verify and unpack self.low_pnt
+            #if not self.low_pnt or len(self.low_pnt[0]) != 3:
+                #raise ValueError("self.low_pnt is not properly defined")
+            
+            cx = self.low_pnt[0][0]  # Unpack the first row of self.low_pnt
+            cy = self.low_pnt[0][1]  # Unpack the first row of self.low_pnt
+            cz = self.low_pnt[0][2]+ float(self.E_rad.text())/5  # Unpack the first row of self.low_pnt
+
+            # Only pass L, W, H
+            body_verts, nose_cap, tail_cap = draw_canoe_gondola(
+                self,
+                length=L,
+                width=W,
+                height=H,
+                env_low_point=(cx, cy, cz)
+            )
+
+            self.plot_canvas.draw()
+
         except Exception as e:
             QMessageBox.critical(self, "Gondola Error", str(e))
             self.logback.append(f"Gondola error: {e}")
+
+
 
 
 
@@ -394,11 +412,12 @@ class MainWindow(QMainWindow):
         # Engine position
         L_env = float(self.E_len.text())
         Per_Bck = float((self.eng_Posx.text())) / 100 # Convert to percentage
-        if Per_Bck > 0.3:
+        if Per_Bck > 0.85:
             eng_err_message = "Engine position too far back"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine position too far back")
         ####
-        Pos_x = L_env * (1/2) + L_env * Per_Bck
+        Pos_x =  L_env * Per_Bck
         Pos_y = float(self.E_rad.text())
         ################################
         # Engine dimensions
@@ -409,12 +428,15 @@ class MainWindow(QMainWindow):
         if L_eng > 50:
             eng_err_message = "Engine length too long"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine length too long")
         if R_eng > L_eng:
             eng_err_message = "Engine radius too long"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine radius too long")
         if D1_eng > L_eng * (1/2):
             eng_err_message = "Engine taper too long"
             self.logback.append(f"Error: {eng_err_message}")
+            raise ValueError("Engine taper too long")
         
         
         #########
@@ -423,8 +445,6 @@ class MainWindow(QMainWindow):
             draw_engine(self,Pos_x, Pos_y,L_eng, R_eng, D1_eng)
             
             self.logback.append(f"Drawing engine...")
-            
-            
         except Exception as e:
             QMessageBox.critical(self, "Engine Error", str(e))
             self.logback.append(f"Engine error: {e}")
@@ -469,6 +489,19 @@ class MainWindow(QMainWindow):
 ###################################### 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    # app.setStyle("Macintosh")  
+    # app.setStyle("Fusion")  
+    # app.setStyle("Windows")  
+    # app.setStyle("GTK")  
+    # app.setStyle("WindowsVista")
+    # app.setStyle("Material") 
+    app.setStyle("Android")  
+    # app.setStyleSheet("""
+    #     QLabel { color: #000080; }  /* Navy blue for labels */
+    #     QPushButton { color: #000000; }  /* Dark green for buttons */
+    # """)
+    app.setFont(QtGui.QFont("Times New Roman", 13))
+    app.setPalette(app.style().standardPalette()) # Reset to standard light theme
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

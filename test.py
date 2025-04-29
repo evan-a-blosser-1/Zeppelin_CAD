@@ -95,7 +95,7 @@ def draw_canoe_gondola(main_window=None, length=50, width=20, height=10, env_low
     gondola_center_x = (min(all_x) + max(all_x)) / 2
     gondola_center_y = (min(all_y) + max(all_y)) / 2
     gondola_top_z    = max(all_z)
-    #main_window.logback.append(env_low_point[0])
+
     # --- Shift to match desired envelope low point
     env_x, env_y, env_z = env_low_point
 
@@ -117,24 +117,48 @@ def draw_canoe_gondola(main_window=None, length=50, width=20, height=10, env_low
     Zb += z_shift
 
     # --- Plot
-    #print(body_verts)
-    # Body
-    #body_poly = Poly3DCollection(lofted_surface, facecolor='silver', alpha=0.9, linewidths=0.05)
-    #ax.add_collection3d(body_poly)
+    if main_window is None:
+        fig = plt.figure(figsize=(12, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        #print(body_verts)
+        # Body
+        #body_poly = Poly3DCollection(lofted_surface, facecolor='silver', alpha=0.9, linewidths=0.05)
+        #ax.add_collection3d(body_poly)
 
-    main_window.plot_canvas.axis.plot_wireframe(lofted_surface[:, :, 0], lofted_surface[:, :, 1], lofted_surface[:, :, 2],
-                    color='black', alpha=0.9)
+        ax.plot_surface(lofted_surface[:, :, 0], lofted_surface[:, :, 1], lofted_surface[:, :, 2],
+                        color='silver', alpha=0.9, linewidth=0.05)
 
-    # Nose Cap
-    main_window.plot_canvas.axis.plot_wireframe(Xf, Yf, Zf, color='black',alpha=0.9)
+        # Nose Cap
+        ax.plot_surface(Xf, Yf, Zf, color='red', alpha=0.9)
 
-    # Tail Cap
-    main_window.plot_canvas.axis.plot_wireframe(Xb, Yb, Zb, color='black',alpha=0.9)
+        # Tail Cap
+        ax.plot_surface(Xb, Yb, Zb, color='blue', alpha=0.9)
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        # Automatically adjust box
+        total_x = [env_x - length/2, env_x + length/2]
+        total_y = [env_y - width/2,  env_y + width/2]
+        total_z = [env_z - height,   env_z + height/2]
+
+        ax.set_xlim(total_x)
+        ax.set_ylim(total_y)
+        ax.set_zlim(total_z)
+        ax.set_box_aspect([length, width, height])
+
+        plt.tight_layout()
+        plt.show()
+    else:
+        raise NotImplementedError("Standalone tester only.")
 
     return body_verts, (Xf,Yf,Zf), (Xb,Yb,Zb)
 
-
-
+# --- MAIN ---
+if __name__ == "__main__":
+    # Example: place gondola so top center matches envelope point at (100,0,0)
+    draw_canoe_gondola(env_low_point=(100,0,0))
 
 
 

@@ -32,7 +32,7 @@ class PlotCanvas(FigureCanvas):
 class MainWindow(QMainWindow):
     def __init__(self):  # Fixed method name from __int__ to __init__
         super().__init__()
-        self.setWindowTitle("Zeppelin CAD")
+        self.setWindowTitle("Zep-CAD")
         self.setWindowState(Qt.WindowMaximized)
         ######################################
         ######################################
@@ -437,9 +437,6 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Engine Error", str(e))
             self.logback.append(f"Engine error: {e}")
             
-
-
-
 
 
 

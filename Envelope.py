@@ -79,6 +79,9 @@ def draw_envelope(main_window,L,R,D1):
     main_window.plot_canvas.axis.plot_wireframe(wfrm['Px'], wfrm['Py'], wfrm['Pz'],  color='black', alpha=0.5)
     # main_window.plot_canvas.axis.scatter(p_i[:,0], p_i[:,1], p_i[:,2], color='red', label='Control points')
     # main_window.logback.append(f"Graphing...")
+    main_window.plot_canvas.axis.set_xlabel('X-axis (m)')
+    main_window.plot_canvas.axis.set_ylabel('Y-axis (m)')
+    main_window.plot_canvas.axis.set_zlabel('Z-axis (m)')
     main_window.plot_canvas.axis.set_aspect('equal', 'box')
     main_window.plot_canvas.draw()
     ##############################

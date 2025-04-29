@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import sympy as sp
 
 def draw_envelope(main_window,L,R,D1):
-    main_window.logback.append(f"Creating envelope with L={L}, R={R}, Percent={D1}")
+    # main_window.logback.append(f"Creating envelope with L={L}, R={R}, Percent={D1}")
     # Length envelope
     #L  = 15 
     #R  = 5
@@ -78,7 +78,7 @@ def draw_envelope(main_window,L,R,D1):
     # main_window.plot_canvas.axis.add_collection3d(mesh)
     main_window.plot_canvas.axis.plot_wireframe(wfrm['Px'], wfrm['Py'], wfrm['Pz'],  color='black', alpha=0.5)
     # main_window.plot_canvas.axis.scatter(p_i[:,0], p_i[:,1], p_i[:,2], color='red', label='Control points')
-    main_window.logback.append(f"Graphing...")
+    # main_window.logback.append(f"Graphing...")
     main_window.plot_canvas.axis.set_aspect('equal', 'box')
     main_window.plot_canvas.draw()
     ##############################

@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import sympy as sp 
 
 def draw_engine(main_window, Posx, Posy, L, R, D1):
-    main_window.logback.append(f"Creating engine...")
+    # main_window.logback.append(f"Creating engine...")
     ######
     # Translation matrix, move down x-axis
     Mi = Posx

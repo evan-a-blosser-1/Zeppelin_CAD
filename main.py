@@ -368,14 +368,17 @@ class MainWindow(QMainWindow):
         L = float(self.gondola_len.text())
         W = float(self.gondola_wid.text())
         H = float(self.gondola_height.text())
-
-        self.logback.append(f"Gondola → L={L}, W={W}, H={H}")
-
+        self.logback.append(f"---------------------------") 
+        self.logback.append(f"Drawing gondola:")  
+        self.logback.append(f"L={L}, W={W}, H={H}")
+        self.logback.append(f"---------------------------")   
+        
+        
         try:
             from Gondola import draw_canoe_gondola
 
             self.logback.append(f"Self.low_pnt: {self.low_pnt}")
-            print(f"self.low_pnt: {self.low_pnt}")
+            # print(f"self.low_pnt: {self.low_pnt}")
 
             # Verify and unpack self.low_pnt
             #if not self.low_pnt or len(self.low_pnt[0]) != 3:

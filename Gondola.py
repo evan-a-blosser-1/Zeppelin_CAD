@@ -32,7 +32,7 @@ def loft_cross_sections(front_curve, rear_curve, num_sections=30):
     for w in w_vals:
         loft_slice = (1 - w) * front_curve + w * rear_curve
         surface.append(loft_slice)
-        print(loft_slice)
+        # print(loft_slice)
     return np.array(surface)
 
 # --- Generate a cap surface matrix using Eqn 2.87
